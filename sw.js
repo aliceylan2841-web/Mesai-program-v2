@@ -1,20 +1,21 @@
-const CACHE_NAME = 'mesai-takip-v1';
+const CACHE_NAME = 'mesai-takip-v3';
 const ASSETS = [
-  '/index.html',
-  '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  '/mesai_takip/',
+  '/mesai_takip/index.html',
+  '/mesai_takip/manifest.json',
+  '/mesai_takip/icons/icon-192x192.png',
+  '/mesai_takip/icons/icon-512x512.png'
 ];
 
-// Kurulum: dosyaları önbelleğe al
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(ASSETS).catch(() => {});
+    })
   );
   self.skipWaiting();
 });
 
-// Aktivasyon: eski cache'leri temizle
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -24,23 +25,16 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// Fetch: önce cache, yoksa network
 self.addEventListener('fetch', e => {
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
       return fetch(e.request).then(response => {
-        // Sadece başarılı GET isteklerini cache'e ekle
-        if (!response || response.status !== 200 || e.request.method !== 'GET') {
-          return response;
-        }
-        let responseClone = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(e.request, responseClone));
+        if (!response || response.status !== 200 || e.request.method !== 'GET') return response;
+        let clone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
         return response;
-      }).catch(() => {
-        // Network yoksa cache'den dön
-        return caches.match('/index.html');
-      });
+      }).catch(() => caches.match('/mesai_takip/index.html'));
     })
   );
 });
