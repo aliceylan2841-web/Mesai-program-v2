@@ -64,4 +64,5 @@ bubblewrap build
 
 ## 👤 Geliştirici
 
+
 **Acamay** — Tüm hakları saklıdır.
