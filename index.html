@@ -4,15 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Mesai & İzin Pro</title>
-<meta name="description" content="Mesai & İzin Takip Pro - Mesai ve izin günlerinizi kolayca yönetin.">
-<meta name="theme-color" content="#1a56db">
-<link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512x512.png">
-<link rel="apple-touch-icon" href="icons/icon-192x192.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Mesai & İzin Pro">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
 :root{
@@ -89,7 +80,7 @@ body.dark .d.col{background:#1e2130;}
 .d.csa{border-color:var(--V);background:var(--VL);}
 .d.cev{border-color:var(--O);background:var(--OL);}
 .dn{font-weight:900;font-size:11px;line-height:1;}
-.di{font-size:12px;font-weight:800;color:var(--G);line-height:1.2;margin-top:1px;text-align:center;}
+.di{font-size:2px;font-weight:800;color:var(--G);line-height:1;margin-top:1px;text-align:center;}
 .diz{font-size:9px;line-height:1;margin-top:1px;}
 .xb{position:absolute;top:-4px;right:-4px;background:var(--R);color:#fff;border-radius:50%;width:13px;height:13px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;border:1.5px solid #fff;z-index:5;}
 
@@ -169,7 +160,7 @@ body:not(.priv) .tv, body:not(.priv) .ei, body:not(.priv) .di-price{
 .mi{display:flex;flex-direction:column;gap:2px;}
 .mi label{font-size:9px;font-weight:800;color:var(--TX2);}
 .mi input{border:1.5px solid var(--BD);border-radius:7px;padding:7px;text-align:center;font-size:15px;font-weight:800;color:var(--P);background:#f8faff;font-family:var(--M);width:100%;}
-body.dark .mi input{background:#1e2130;} mM
+body.dark .mi input{background:#1e2130;}
 .mi input:focus{border-color:var(--P);outline:none;}
 .cr{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:6px;}
 .ci{display:flex;flex-direction:column;gap:1px;}
@@ -1857,8 +1848,19 @@ function delPhoto(entryKey, i){
 // ══════ PWA DESTEĞİ ══════
 function registerPWA(){
   try{
+    let manifest={
+      name:"Mesai & İzin Pro", short_name:"MesaiPro", start_url:".", display:"standalone",
+      background_color:"#f1f5fb", theme_color:"#1a56db",
+      icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a56db'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' fill='white'%3E%E2%8F%B1%EF%B8%8F%3C/text%3E%3C/svg%3E", sizes:"192x192", type:"image/svg+xml"}]
+    };
+    let blob=new Blob([JSON.stringify(manifest)], {type:'application/json'});
+    let link=document.createElement('link');
+    link.rel='manifest'; link.href=URL.createObjectURL(blob);
+    document.head.appendChild(link);
     if('serviceWorker' in navigator){
-      navigator.serviceWorker.register('sw.js').catch(()=>{});
+      let swCode=`self.addEventListener('fetch',e=>{});`;
+      let swBlob=new Blob([swCode],{type:'application/javascript'});
+      navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(()=>{});
     }
   }catch(e){}
 }
