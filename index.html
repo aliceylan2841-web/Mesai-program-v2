@@ -31,7 +31,7 @@ body{font-family:var(--F);background:var(--BG);color:var(--TX);display:flex;flex
 .hd-t{color:#fff;font-size:13px;font-weight:900;}
 .hd-t em{color:#93c5fd;font-style:normal;}
 .hd-d{color:#bfdbfe;font-size:9px;font-family:var(--M);}
-.hd-dl{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:7px;padding:5px 8px;font-size:3px;font-weight:800;font-family:var(--F);display:flex;align-items:center;gap:4px;}
+.hd-dl{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:7px;padding:5px 8px;font-size:10px;font-weight:800;font-family:var(--F);display:flex;align-items:center;gap:4px;}
 
 /* TABS */
 .tabs{height:50px;display:flex;background:var(--CARD);border-bottom:3px solid var(--BD);flex-shrink:0;}
@@ -89,7 +89,7 @@ body.dark .d.col{background:#1e2130;}
 .dg-c{background:var(--CARD);border-radius:8px;padding:5px 10px;box-shadow:var(--SH);border:1px solid var(--BD);}
 .dg-r{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
 .dg-i{display:flex;align-items:center;gap:3px;}
-.dg-lb{font-size:10px;font-weight:800;color:var(--TX2);font-family:var(--M);width:26px;}
+.dg-lb{font-size:8px;font-weight:800;color:var(--TX2);font-family:var(--M);width:26px;}
 .dg-tw{width:36px;height:6px;background:var(--BG);border-radius:99px;overflow:hidden;}
 .dg-b{height:100%;border-radius:99px;}
 .dg-v{font-size:8px;font-weight:800;color:var(--TX);font-family:var(--M);}
@@ -874,9 +874,9 @@ function addStaff(){
   renderStaffBar();
   toast('✅ '+name.trim()+' eklendi');
 }
-function delStaff(id){
+async function delStaff(id){
   if(id==='default'){toast('⚠️ Varsayılan profil silinemez');return;}
-  if(!confirm('Bu personeli ve tüm verilerini silmek istediğinize emin misiniz?')) return;
+  if(!await customConfirm('Bu personeli ve tüm verilerini silmek istediğinize emin misiniz?')) return;
   STAFF_LIST=STAFF_LIST.filter(s=>s.id!==id);
   saveStaffList();
   if(ACTIVE_PROFILE===id) switchProfile('default'); else renderStaffBar();
@@ -1106,7 +1106,7 @@ function renderDagil(){
   el.innerHTML=''; el.appendChild(frag);
 }
 function CM(d){Cm+=d;if(Cm>11){Cm=0;Cy++;}if(Cm<0){Cm=11;Cy--;}loadMonthExtras();renderCal();}
-function delDay(d){if(confirm(`${d} ${MN[Cm]} silinsin mi?`)){delete DB[`${d}-${Cm}-${Cy}`];renderCal();}}
+async function delDay(d){if(await customConfirm(`${d} ${MN[Cm]} silinsin mi?`)){delete DB[`${d}-${Cm}-${Cy}`];renderCal();}}
 
 function openDay(d){
   eDay=d;
@@ -1589,6 +1589,34 @@ function toast(msg){
   setTimeout(()=>t.remove(),2200);
 }
 
+function customConfirm(msg){
+  return new Promise((resolve)=>{
+    let ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px;';
+    let box=document.createElement('div');
+    box.style.cssText='background:var(--CARD);color:var(--TX);border-radius:14px;padding:20px 18px;max-width:320px;width:100%;box-shadow:0 12px 32px rgba(0,0,0,.3);text-align:center;';
+    let txt=document.createElement('div');
+    txt.style.cssText='font-size:13px;font-weight:700;line-height:1.5;margin-bottom:16px;';
+    txt.textContent=msg;
+    let row=document.createElement('div');
+    row.style.cssText='display:flex;gap:8px;';
+    let cancelBtn=document.createElement('button');
+    cancelBtn.textContent='İptal';
+    cancelBtn.style.cssText='flex:1;padding:10px;border-radius:9px;border:1.5px solid var(--BD);background:transparent;color:var(--TX2);font-weight:800;font-size:12px;font-family:var(--F);cursor:pointer;';
+    let okBtn=document.createElement('button');
+    okBtn.textContent='Sil';
+    okBtn.style.cssText='flex:1;padding:10px;border-radius:9px;border:none;background:var(--R);color:#fff;font-weight:800;font-size:12px;font-family:var(--F);cursor:pointer;';
+    function close(result){ ov.remove(); resolve(result); }
+    cancelBtn.onclick=()=>close(false);
+    okBtn.onclick=()=>close(true);
+    ov.onclick=(e)=>{ if(e.target===ov) close(false); };
+    row.appendChild(cancelBtn); row.appendChild(okBtn);
+    box.appendChild(txt); box.appendChild(row);
+    ov.appendChild(box);
+    document.body.appendChild(ov);
+  });
+}
+
 function togglePriv(){
   let on=document.body.classList.toggle('priv');
   let btn=document.getElementById('privBtn');
@@ -1755,10 +1783,10 @@ function exportBackup(){
 function importBackup(file){
   if(!file) return;
   let reader=new FileReader();
-  reader.onload=function(e){
+  reader.onload=async function(e){
     try{
       let data=JSON.parse(e.target.result);
-      if(!confirm('Mevcut veriler bu profildeki yedekle değiştirilecek. Emin misiniz?')) return;
+      if(!await customConfirm('Mevcut veriler bu profildeki yedekle değiştirilecek. Emin misiniz?')) return;
       if(data.DB) DB=data.DB;
       if(data.SETTINGS) SETTINGS=data.SETTINGS;
       if(data.PLAN_IZINLER) PLAN_IZINLER=data.PLAN_IZINLER;
