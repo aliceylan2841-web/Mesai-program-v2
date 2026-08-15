@@ -258,6 +258,12 @@ body.dark .ff input, body.dark .ff select, body.dark .ff textarea{background:#1e
    AYARLAR
 ═══════════════════════════════════════ */
 .settings-section{background:var(--CARD);border-radius:12px;margin-bottom:10px;overflow:hidden;box-shadow:var(--SH);border:1px solid var(--BD);}
+.set-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;position:sticky;top:0;z-index:10;background:var(--BG);padding:4px 0 8px;}
+.set-tab{flex:1 1 30%;min-width:88px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 4px;border-radius:10px;background:var(--CARD);border:1.5px solid var(--BD);color:var(--TX2);font-size:9px;font-weight:800;text-align:center;cursor:pointer;transition:background .15s,color .15s,border-color .15s;}
+.set-tab .set-tab-ic{font-size:15px;line-height:1;}
+.set-tab.on{background:var(--PL);color:var(--P);border-color:var(--P);}
+.set-panel{display:none;}
+.set-panel.on{display:block;}
 .settings-header{padding:10px 14px;border-bottom:1px solid var(--BD);background:linear-gradient(90deg,var(--PL),var(--CARD));}
 .settings-header-title{font-size:12px;font-weight:900;color:var(--P);}
 .settings-row{display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--BD);gap:10px;}
@@ -616,7 +622,17 @@ body.dark .ff input, body.dark .ff select, body.dark .ff textarea{background:#1e
 <!-- ══════════ AYARLAR ══════════ -->
 <div class="pg" id="pg-s">
   <div class="sa">
+    <div class="set-tabs">
+      <div class="set-tab on" id="stab-kisisel" onclick="showSetTab('kisisel')"><span class="set-tab-ic">👤</span>Kişisel</div>
+      <div class="set-tab" id="stab-mali" onclick="showSetTab('mali')"><span class="set-tab-ic">💰</span>Mali</div>
+      <div class="set-tab" id="stab-hak" onclick="showSetTab('hak')"><span class="set-tab-ic">🎁</span>Ek Haklar</div>
+      <div class="set-tab" id="stab-gorunum" onclick="showSetTab('gorunum')"><span class="set-tab-ic">🎨</span>Görünüm</div>
+      <div class="set-tab" id="stab-guvenlik" onclick="showSetTab('guvenlik')"><span class="set-tab-ic">🔐</span>Güvenlik</div>
+      <div class="set-tab" id="stab-personel" onclick="showSetTab('personel')"><span class="set-tab-ic">👥</span>Personel</div>
+    </div>
+
     <!-- Kişisel Bilgiler -->
+    <div class="set-panel on" id="spanel-kisisel">
     <div class="settings-section">
       <div class="settings-header"><div class="settings-header-title">👤 Kişisel Bilgiler</div></div>
       <div style="padding:12px;">
@@ -631,8 +647,10 @@ body.dark .ff input, body.dark .ff select, body.dark .ff textarea{background:#1e
         <div class="ff"><label>ÖNCEKI YILDAN KALAN İZİN (gün)</label><input type="number" id="sCarry" class="settings-input" placeholder="0" min="0"></div>
       </div>
     </div>
+    </div>
 
     <!-- Mali Bilgiler -->
+    <div class="set-panel" id="spanel-mali">
     <div class="settings-section">
       <div class="settings-header"><div class="settings-header-title">💰 Mali Bilgiler</div></div>
       <div style="padding:12px;">
@@ -648,8 +666,10 @@ body.dark .ff input, body.dark .ff select, body.dark .ff textarea{background:#1e
         <div style="font-size:9px;color:var(--TX2);font-weight:700;padding:5px 8px;background:var(--BG);border-radius:6px;">💡 Varsayılan değerler: Her yeni ay için otomatik doldurulur. O ay farklı bir değer girerseniz, ayarlardaki değer geçersiz olur ve girdiğiniz değer kaydedilir.</div>
       </div>
     </div>
+    </div>
 
     <!-- Ek Haklar -->
+    <div class="set-panel" id="spanel-hak">
     <div class="settings-section">
       <div class="settings-header"><div class="settings-header-title">🎁 Ek Haklar & Ödemeler</div></div>
       <div style="padding:12px;">
@@ -657,8 +677,10 @@ body.dark .ff input, body.dark .ff select, body.dark .ff textarea{background:#1e
         <button class="hak-add-btn" onclick="addHak()">➕ Hak / Ödeme Ekle</button>
       </div>
     </div>
+    </div>
 
     <!-- Görünüm -->
+    <div class="set-panel" id="spanel-gorunum">
     <div class="settings-section">
       <div class="settings-header"><div class="settings-header-title">🎨 Görünüm & Tercihler</div></div>
       <div class="settings-row">
@@ -678,8 +700,10 @@ body.dark .ff input, body.dark .ff select, body.dark .ff textarea{background:#1e
         <div class="toggle" id="soundToggle" onclick="toggleSound()"><div class="toggle-ball"></div></div>
       </div>
     </div>
+    </div>
 
     <!-- Güvenlik & Bildirim -->
+    <div class="set-panel" id="spanel-guvenlik">
     <div class="settings-section">
       <div class="settings-header"><div class="settings-header-title">🔐 Güvenlik & Bildirimler</div></div>
       <div class="settings-row">
@@ -722,14 +746,17 @@ body.dark .ff input, body.dark .ff select, body.dark .ff textarea{background:#1e
         <div class="photo-thumb-row" id="photoThumbs"></div>
       </div>
     </div>
+    </div>
 
     <!-- Personel Yönetimi -->
+    <div class="set-panel" id="spanel-personel">
     <div class="settings-section">
       <div class="settings-header"><div class="settings-header-title">👥 Personel Profilleri</div></div>
       <div class="settings-row" style="flex-direction:column;align-items:flex-start;">
         <div class="settings-row-sub" style="margin-bottom:6px;">Her personel kendi mesai/izin verisini ayrı saklar. Üstteki profil şeridinden geçiş yapabilirsiniz.</div>
         <button class="plan-add-btn" onclick="addStaff()">➕ Yeni Personel Ekle</button>
       </div>
+    </div>
     </div>
 
     <button class="settings-save-btn" onclick="saveSettings()">💾 Ayarları Kaydet</button>
@@ -1581,6 +1608,16 @@ function saveAll(){
 }
 
 function showQR(){ show('ovQR'); }
+
+function showSetTab(key){
+  document.querySelectorAll('.set-tab').forEach(el=>el.classList.remove('on'));
+  document.querySelectorAll('.set-panel').forEach(el=>el.classList.remove('on'));
+  let tab=document.getElementById('stab-'+key), panel=document.getElementById('spanel-'+key);
+  if(tab) tab.classList.add('on');
+  if(panel) panel.classList.add('on');
+  let sa=document.querySelector('#pg-s .sa');
+  if(sa) sa.scrollTop=0;
+}
 
 function toast(msg){
   let t=document.createElement('div');
