@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mesai-izin-pro-v2';
+const CACHE_NAME = 'mesai-izin-pro-v3';
 const ASSETS = [
   '.',
   'index.html',
