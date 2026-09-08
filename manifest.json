@@ -2,7 +2,7 @@
   "name": "Mesai & İzin Takip Pro",
   "short_name": "Mesai Pro",
   "description": "Mesai ve izin günlerinizi kolayca takip edin, hesaplayın ve raporlayın.",
-  "id": "/",
+  "id": "com.aliarslan.mesaiizintakip",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
