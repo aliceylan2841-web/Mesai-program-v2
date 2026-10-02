@@ -282,15 +282,25 @@ body.dark .ff input, body.dark .ff select, body.dark .ff textarea{background:#1e
 .settings-input{border:1.5px solid var(--BD);background:var(--BG);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;color:var(--TX);font-family:var(--F);width:100%;}
 .settings-input:focus{border-color:var(--P);outline:none;}
 .settings-save-btn{background:var(--G);color:#fff;border:none;border-radius:9px;padding:10px;font-weight:800;font-size:13px;font-family:var(--F);width:100%;margin-top:4px;box-shadow:0 3px 10px rgba(5,150,105,.22);}
+.hak-section{margin-bottom:12px;}
+.hak-section-title{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:0 0 7px;padding:7px 9px;border-radius:8px;background:var(--BG);border:1px solid var(--BD);}
+.hak-section-title .t{font-size:10px;font-weight:900;color:var(--TX);}
+.hak-section-title .s{font-size:8px;font-weight:700;color:var(--TX2);margin-top:1px;}
 .hak-item{background:var(--BG);border-radius:9px;padding:10px 12px;margin-bottom:8px;border-left:3px solid var(--V);}
-.hak-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.hak-name{font-size:12px;font-weight:900;color:var(--TX);}
-.hak-del{color:var(--R);font-size:14px;cursor:pointer;}
+.hak-item.monthly{border-left-color:var(--G);}
+.hak-head{display:flex;justify-content:space-between;align-items:center;gap:7px;margin-bottom:6px;}
+.hak-head-main{flex:1;min-width:0;}
+.hak-name{font-size:12px;font-weight:900;color:var(--TX);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hak-badge{display:inline-flex;align-items:center;margin-top:2px;padding:2px 6px;border-radius:99px;font-size:7px;font-weight:900;background:var(--GL);color:var(--G);}
+.hak-del{color:var(--R);font-size:14px;cursor:pointer;flex-shrink:0;}
 .hak-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
 .hak-f{display:flex;flex-direction:column;gap:2px;}
 .hak-f label{font-size:9px;font-weight:800;color:var(--TX2);}
-.hak-f input{border:1.5px solid var(--BD);background:var(--CARD);border-radius:6px;padding:5px 7px;font-size:11px;font-weight:700;color:var(--TX);font-family:var(--F);}
-.hak-add-btn{background:var(--BG);color:var(--V);border:1.5px solid var(--V);border-radius:8px;padding:7px;font-weight:800;font-size:11px;font-family:var(--F);width:100%;cursor:pointer;}
+.hak-f input,.hak-f select{border:1.5px solid var(--BD);background:var(--CARD);border-radius:6px;padding:5px 7px;font-size:11px;font-weight:700;color:var(--TX);font-family:var(--F);width:100%;}
+.hak-f select{height:30px;}
+.hak-add-btn{background:var(--BG);color:var(--V);border:1.5px solid var(--V);border-radius:8px;padding:8px;font-weight:800;font-size:11px;font-family:var(--F);width:100%;cursor:pointer;margin-top:2px;}
+.hak-add-btn.monthly{color:var(--G);border-color:var(--G);background:var(--GL);}
+.hak-empty{font-size:9px;color:var(--TX2);text-align:center;padding:9px;background:var(--BG);border-radius:8px;border:1px dashed var(--BD);margin-bottom:8px;}
 
 /* GELİR DETAYI MODAL */
 .gd-row{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:8px;background:var(--BG);margin-bottom:6px;}
@@ -424,6 +434,32 @@ body.dark .ff input, body.dark .ff select, body.dark .ff textarea{background:#1e
 .photo-thumb{width:52px;height:52px;border-radius:8px;object-fit:cover;border:1px solid var(--BD);}
 .photo-thumb-wrap{position:relative;}
 .photo-thumb-del{position:absolute;top:-4px;right:-4px;background:var(--R);color:#fff;border-radius:50%;width:15px;height:15px;font-size:9px;display:flex;align-items:center;justify-content:center;}
+
+/* ═══ EKRANA SIĞDIR + KAYDIR ═══ */
+html,body{overscroll-behavior:none;max-width:100vw;}
+.pg{overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+.sa{overflow-x:hidden;min-height:0;}
+img,canvas,svg,video{max-width:100%;}
+input,select,textarea{max-width:100%;min-width:0;}
+.hd,.staff-bar,.cal-nav{max-width:100vw;}
+.tabs{overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:1 0 auto;min-width:0;padding:0 5px;white-space:nowrap;font-size:clamp(7.5px,2.35vw,10px);letter-spacing:-.2px;}
+table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+/* Ayarlar: liste menü */
+.set-tabs{flex-direction:column;flex-wrap:nowrap;position:static;gap:8px;padding:0;margin-bottom:10px;}
+.set-tab{flex:none;width:100%;min-width:0;flex-direction:row;justify-content:flex-start;gap:12px;padding:14px 14px;font-size:13px;color:var(--TX);text-align:left;}
+.set-tab .set-tab-ic{font-size:20px;width:26px;text-align:center;}
+.set-tab::after{content:'›';margin-left:auto;font-size:22px;color:var(--TX2);line-height:1;}
+/* Ayarlar: tam sayfa panel */
+.set-panel.on{display:flex;position:fixed;top:0;left:0;right:0;bottom:0;height:100dvh;z-index:800;background:var(--BG);flex-direction:column;animation:spIn .18s ease;}
+@keyframes spIn{from{transform:translateX(30px);opacity:.4}to{transform:none;opacity:1}}
+.sp-head{display:flex;align-items:center;gap:10px;padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top));background:linear-gradient(135deg,var(--P2),var(--P) 60%,var(--AC));color:#fff;flex-shrink:0;box-shadow:0 2px 10px rgba(26,86,219,.28);}
+.sp-back{font-size:24px;line-height:1;padding:2px 10px 2px 2px;cursor:pointer;font-weight:900;}
+.sp-title{font-size:15px;font-weight:900;}
+.sp-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:10px 8px;-webkit-overflow-scrolling:touch;}
+.sp-foot{flex-shrink:0;padding:8px 10px;padding-bottom:max(8px,env(safe-area-inset-bottom));background:var(--CARD);border-top:1px solid var(--BD);}
+.sp-foot .settings-save-btn{margin-top:0;}
 </style>
 </head>
 <body>
@@ -675,7 +711,7 @@ body.dark .ff input, body.dark .ff select, body.dark .ff textarea{background:#1e
 
     </div>
     <div class="tb2"><div class="tbi">💡</div><div class="tbt">Günü silmek için takvimde köşedeki kırmızı × butonuna dokunun. Tüm veriler cihaza kaydedilir.</div></div>
-    <div class="ver">Mesai & İzin Takip Pro v14.0 · Veriler cihazınızda saklanır</div>
+    <div class="ver">Mesai & İzin Takip Pro v14.1 · Veriler cihazınızda saklanır</div>
   </div>
 </div>
 
@@ -683,7 +719,7 @@ body.dark .ff input, body.dark .ff select, body.dark .ff textarea{background:#1e
 <div class="pg" id="pg-s">
   <div class="sa">
     <div class="set-tabs">
-      <div class="set-tab on" id="stab-kisisel" onclick="showSetTab('kisisel')"><span class="set-tab-ic">👤</span>Kişisel</div>
+      <div class="set-tab" id="stab-kisisel" onclick="showSetTab('kisisel')"><span class="set-tab-ic">👤</span>Kişisel</div>
       <div class="set-tab" id="stab-mali" onclick="showSetTab('mali')"><span class="set-tab-ic">💰</span>Mali</div>
       <div class="set-tab" id="stab-hak" onclick="showSetTab('hak')"><span class="set-tab-ic">🎁</span>Ek Haklar</div>
       <div class="set-tab" id="stab-gorunum" onclick="showSetTab('gorunum')"><span class="set-tab-ic">🎨</span>Görünüm</div>
@@ -692,7 +728,7 @@ body.dark .ff input, body.dark .ff select, body.dark .ff textarea{background:#1e
     </div>
 
     <!-- Kişisel Bilgiler -->
-    <div class="set-panel on" id="spanel-kisisel">
+    <div class="set-panel" id="spanel-kisisel">
     <div class="settings-section">
       <div class="settings-header"><div class="settings-header-title">👤 Kişisel Bilgiler</div></div>
       <div style="padding:12px;">
@@ -716,7 +752,7 @@ body.dark .ff input, body.dark .ff select, body.dark .ff textarea{background:#1e
       <div style="padding:12px;">
         <div class="fr">
           <div class="ff"><label>NET MAAŞ (₺)</label><input type="number" id="sMaasS" class="settings-input" placeholder="0" oninput="syncMaaS()"></div>
-          <div class="ff"><label>SAAT ÜCRETİ (₺)</div><input type="number" id="sSaatS" class="settings-input" placeholder="Otomatik" oninput="syncSaatS()"></div>
+          <div class="ff"><label>SAAT ÜCRETİ (₺)</label><input type="number" id="sSaatS" class="settings-input" placeholder="Otomatik" oninput="syncSaatS()"></div>
         </div>
         <div class="fr">
           <div class="ff"><label>İKRAMİYE VARSAYILAN (₺)</label><input type="number" id="sIkrS" class="settings-input" placeholder="0"></div>
@@ -733,11 +769,20 @@ body.dark .ff input, body.dark .ff select, body.dark .ff textarea{background:#1e
     <div class="settings-section">
       <div class="settings-header"><div class="settings-header-title">🎁 Ek Haklar & Ödemeler</div></div>
       <div style="padding:12px;">
+        <div style="font-size:9px;color:var(--TX2);font-weight:700;line-height:1.45;margin-bottom:10px;background:var(--PL);border-radius:8px;padding:8px 9px;">
+          💡 Her ay tekrarlanan ödemeleri ayrı kaydedin. Örneğin <b>Yıl Farkı</b> bir kez girilip <b>Her Ay</b> seçilirse, başlangıç tarihinden itibaren her ay otomatik olarak Diğer Gelir'e eklenir.
+        </div>
+
         <div class="settings-header-title" style="font-size:11px;margin-bottom:8px;">📅 Ödeme Takvimi</div>
         <div id="tkvWrap"></div>
-        <div class="settings-header-title" style="font-size:11px;margin:14px 0 8px;">🎁 Kayıtlı Haklar</div>
-        <div id="hakList"></div>
-        <button class="hak-add-btn" onclick="addHak()">➕ Hak / Ödeme Ekle</button>
+
+        <div class="settings-header-title" style="font-size:11px;margin:14px 0 8px;">🔁 Her Ay Düzenli Ek Gelirler</div>
+        <div id="hakMonthlyList"></div>
+        <button class="hak-add-btn monthly" onclick="addHak('monthly')">➕ Düzenli Ek Gelir Ekle</button>
+
+        <div class="settings-header-title" style="font-size:11px;margin:16px 0 8px;">🎁 Tek Seferlik Ek Haklar / Ödemeler</div>
+        <div id="hakOnceList"></div>
+        <button class="hak-add-btn" onclick="addHak('once')">➕ Tek Seferlik Hak / Ödeme Ekle</button>
       </div>
     </div>
     </div>
@@ -822,7 +867,6 @@ body.dark .ff input, body.dark .ff select, body.dark .ff textarea{background:#1e
     </div>
     </div>
 
-    <button class="settings-save-btn" onclick="saveSettings()">💾 Ayarları Kaydet</button>
     <div style="height:16px;"></div>
   </div>
 </div>
@@ -1040,7 +1084,9 @@ const BC={r50:'#3b82f6',r65:'#06b6d4',r75:'#8b5cf6',r100:'#f59e0b',r200:'#ef4444
 const BL={r50:'%50',r65:'%65',r75:'%75',r100:'%100',r200:'%200',rX:'ÖZL'};
 
 // ══════ TABS ══════
-function ST(n){
+function ST(n,fromBack){
+  if(!fromBack && n!==curTab){ tabStack.push(curTab); if(tabStack.length>30) tabStack.shift(); }
+  curTab=n; closeSetPanel();
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
   document.getElementById('pg-'+n).classList.add('on');
@@ -1093,48 +1139,6 @@ function loadMonthExtras(){
   updateDigField();
 }
 
-// ══════ EK HAKLAR → OTOMATİK AY BAĞLANTISI ══════
-function hakMonthlyBreakdown(m,y){
-  let items=[];
-  (SETTINGS.hak||[]).forEach(h=>{
-    if(!h.date) return;
-    let dt=new Date(h.date+'T00:00:00');
-    if(isNaN(dt.getTime())) return;
-    if(dt.getMonth()===m && dt.getFullYear()===y){
-      let amt=parseFloat(h.amount)||0;
-      items.push({name:h.name||'İsimsiz Hak', amount:amt, date:h.date, note:h.note||''});
-    }
-  });
-  items.sort((a,b)=>a.date.localeCompare(b.date));
-  return items;
-}
-function hakMonthlyTotal(m,y){
-  return hakMonthlyBreakdown(m,y).reduce((s,i)=>s+i.amount,0);
-}
-function updateDigField(){
-  let tot=hakMonthlyTotal(Cm,Cy);
-  let el=document.getElementById('iDig');
-  if(el) el.value=tot||'';
-  let cnt=hakMonthlyBreakdown(Cm,Cy).length;
-  let lbl=document.getElementById('digCount');
-  if(lbl) lbl.textContent=cnt>0?`(${cnt})`:'';
-}
-function showGelirDetay(){
-  let items=hakMonthlyBreakdown(Cm,Cy);
-  document.getElementById('gdTitle').textContent=`🎁 ${MN[Cm]} ${Cy} — Diğer Gelir Detayı`;
-  let listEl=document.getElementById('gdList');
-  if(!items.length){
-    listEl.innerHTML='<div class="gd-empty">Bu ay için Ek Haklar listesinde kayıtlı bir ödeme yok. "Ayarlar → Ek Haklar" bölümünden tarih girerek ekleyebilirsiniz.</div>';
-  } else {
-    listEl.innerHTML=items.map(i=>{
-      let d=new Date(i.date+'T00:00:00');
-      let dstr=d.getDate()+' '+MN[d.getMonth()].slice(0,3);
-      return `<div class="gd-row"><div><div class="gd-name">${i.name}</div><div class="gd-date">📅 ${dstr}${i.note?' · '+i.note:''}</div></div><div class="gd-amt">${f(i.amount)}₺</div></div>`;
-    }).join('');
-  }
-  document.getElementById('gdTotal').textContent=f(items.reduce((s,i)=>s+i.amount,0))+'₺';
-  show('ovGelirDetay');
-}
 function saveMonthExtra(id){
   let mk=getMonthKey(Cm,Cy);
   let val=document.getElementById(id).value;
@@ -1655,6 +1659,7 @@ function saveSettings(){
   saveSettingsData();
   calcOnly();
   toast('✅ Ayarlar kaydedildi');
+  closeSetPanel();
 }
 function saveSettingsQuick(){
   SETTINGS.maas=parseFloat(document.getElementById('iMaas').value)||0;
@@ -1680,10 +1685,12 @@ function toggleSound(){
   saveSettingsData();
 }
 
-// Ek Haklar
-function addHak(){
-  if(!SETTINGS.hak) SETTINGS.hak=[];
-  SETTINGS.hak.push({name:'',amount:'',date:'',note:''});
+// ══════ EK HAKLAR / DÜZENLİ GELİRLER ══════
+function addHak(repeat='once'){
+  if(!Array.isArray(SETTINGS.hak)) SETTINGS.hak=[];
+  let today=new Date();
+  let iso=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  SETTINGS.hak.push({name:'',amount:'',date:iso,note:'',repeat:repeat==='monthly'?'monthly':'once'});
   renderHakList();
   saveHakLive();
 }
@@ -1693,32 +1700,155 @@ async function delHak(idx){
   renderHakList();
   saveHakLive();
 }
+function changeHakRepeat(idx,val){
+  if(!SETTINGS.hak[idx]) return;
+  SETTINGS.hak[idx].repeat=val==='monthly'?'monthly':'once';
+  renderHakList();
+  saveHakLive();
+}
 function saveHakLive(){
   saveSettingsData();
   updateDigField();
   renderTakvim();
+  // Dashboard açıkken aylık özet açıksa anında yenile
+  let box=document.getElementById('ozetTblBox');
+  if(box && box.style.display==='block') renderAylikOzet();
+}
+function hakEsc(v){
+  return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function renderHakCard(h,i){
+  let monthly=h.repeat==='monthly';
+  let name=hakEsc(h.name||'Yeni Hak');
+  let dateLabel=monthly?'BAŞLANGIÇ TARİHİ':'TARİH';
+  return `<div class="hak-item ${monthly?'monthly':''}">
+    <div class="hak-head">
+      <div class="hak-head-main">
+        <div class="hak-name">${name}</div>
+        ${monthly?'<div class="hak-badge">🔁 HER AY</div>':''}
+      </div>
+      <span class="hak-del" onclick="delHak(${i})">🗑️</span>
+    </div>
+    <div class="hak-grid">
+      <div class="hak-f">
+        <label>HAK ADI</label>
+        <input type="text" value="${hakEsc(h.name||'')}" placeholder="Yıl Farkı, Isınma..." oninput="SETTINGS.hak[${i}].name=this.value;this.closest('.hak-item').querySelector('.hak-name').textContent=this.value||'Yeni Hak';saveHakLive()">
+      </div>
+      <div class="hak-f">
+        <label>TUTAR (₺)</label>
+        <input type="number" value="${hakEsc(h.amount??'')}" placeholder="0" oninput="SETTINGS.hak[${i}].amount=this.value;saveHakLive()">
+      </div>
+      <div class="hak-f">
+        <label>${dateLabel}</label>
+        <input type="date" value="${hakEsc(h.date||'')}" oninput="SETTINGS.hak[${i}].date=this.value;saveHakLive()">
+      </div>
+      <div class="hak-f">
+        <label>ÖDEME TÜRÜ</label>
+        <select onchange="changeHakRepeat(${i},this.value)">
+          <option value="once" ${!monthly?'selected':''}>Tek seferlik</option>
+          <option value="monthly" ${monthly?'selected':''}>Her ay</option>
+        </select>
+      </div>
+      <div class="hak-f" style="grid-column:span 2;">
+        <label>NOT</label>
+        <input type="text" value="${hakEsc(h.note||'')}" placeholder="Açıklama" oninput="SETTINGS.hak[${i}].note=this.value;saveHakLive()">
+      </div>
+    </div>
+  </div>`;
 }
 function renderHakList(){
-  let el=document.getElementById('hakList');
-  if(!SETTINGS.hak||SETTINGS.hak.length===0){el.innerHTML='<div style="font-size:10px;color:var(--TX2);text-align:center;padding:8px;">Henüz ek hak eklenmedi</div>';return;}
-  let html='';
-  SETTINGS.hak.forEach((h,i)=>{
-    html+=`<div class="hak-item">
-      <div class="hak-head"><span class="hak-name">${h.name||'Yeni Hak'}</span><span class="hak-del" onclick="delHak(${i})">🗑️</span></div>
-      <div class="hak-grid">
-        <div class="hak-f"><label>HAK ADI</label><input type="text" value="${h.name||''}" placeholder="İkramiye, Yemek..." oninput="SETTINGS.hak[${i}].name=this.value;renderHakListMini(${i});saveHakLive()"></div>
-        <div class="hak-f"><label>TUTAR (₺)</label><input type="number" value="${h.amount||''}" placeholder="0" oninput="SETTINGS.hak[${i}].amount=this.value;saveHakLive()"></div>
-        <div class="hak-f"><label>TARİH</label><input type="date" value="${h.date||''}" oninput="SETTINGS.hak[${i}].date=this.value;saveHakLive()"></div>
-        <div class="hak-f"><label>NOT</label><input type="text" value="${h.note||''}" placeholder="Açıklama" oninput="SETTINGS.hak[${i}].note=this.value;saveHakLive()"></div>
-      </div>
-    </div>`;
-  });
-  el.innerHTML=html;
+  if(!Array.isArray(SETTINGS.hak)) SETTINGS.hak=[];
+  // Eski kayıtlar repeat alanı olmadan geldiyse tek seferlik kabul edilir; veri kaybı olmaz.
+  SETTINGS.hak.forEach(h=>{ if(h.repeat!=='monthly') h.repeat='once'; });
+
+  let monthlyEl=document.getElementById('hakMonthlyList');
+  let onceEl=document.getElementById('hakOnceList');
+  let monthly=SETTINGS.hak.map((h,i)=>({h,i})).filter(x=>x.h.repeat==='monthly');
+  let once=SETTINGS.hak.map((h,i)=>({h,i})).filter(x=>x.h.repeat!=='monthly');
+
+  if(monthlyEl){
+    monthlyEl.innerHTML=monthly.length
+      ? monthly.map(x=>renderHakCard(x.h,x.i)).join('')
+      : '<div class="hak-empty">Henüz düzenli aylık ek gelir tanımlanmadı.</div>';
+  }
+  if(onceEl){
+    onceEl.innerHTML=once.length
+      ? once.map(x=>renderHakCard(x.h,x.i)).join('')
+      : '<div class="hak-empty">Henüz tek seferlik ek hak / ödeme tanımlanmadı.</div>';
+  }
 }
-function renderHakListMini(i){
-  // just update header
-  let items=document.querySelectorAll('.hak-name');
-  if(items[i]) items[i].textContent=SETTINGS.hak[i].name||'Yeni Hak';
+
+// ══════ AYLIK / TEK SEFERLİK EK GELİR HESABI ══════
+function dateOnly(s){
+  if(!s) return null;
+  let d=new Date(s+'T00:00:00');
+  return isNaN(d.getTime())?null:d;
+}
+function monthStartKey(y,m){ return y*12+m; }
+
+function hakMonthlyBreakdown(m,y){
+  let items=[];
+  (SETTINGS.hak||[]).forEach(h=>{
+    let dt=dateOnly(h.date);
+    if(!dt) return;
+    let amt=parseFloat(h.amount)||0;
+    if(h.repeat==='monthly'){
+      // Başlangıç ayından itibaren her ay tekrarlanır.
+      if(monthStartKey(y,m) < monthStartKey(dt.getFullYear(),dt.getMonth())) return;
+      let lastDay=new Date(y,m+1,0).getDate();
+      let day=Math.min(dt.getDate(),lastDay);
+      let date=y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+      items.push({
+        name:h.name||'İsimsiz Düzenli Gelir',
+        amount:amt,
+        date,
+        note:h.note||'Her ay düzenli ödeme',
+        repeat:'monthly'
+      });
+    }else{
+      if(dt.getMonth()===m && dt.getFullYear()===y){
+        items.push({
+          name:h.name||'İsimsiz Hak',
+          amount:amt,
+          date:h.date,
+          note:h.note||'Tek seferlik ek hak / ödeme',
+          repeat:'once'
+        });
+      }
+    }
+  });
+  items.sort((a,b)=>a.date.localeCompare(b.date) || (a.repeat==='monthly'? -1:1));
+  return items;
+}
+function hakMonthlyTotal(m,y){
+  return hakMonthlyBreakdown(m,y).reduce((s,i)=>s+i.amount,0);
+}
+function updateDigField(){
+  let tot=hakMonthlyTotal(Cm,Cy);
+  let el=document.getElementById('iDig');
+  if(el) el.value=tot||'';
+  let cnt=hakMonthlyBreakdown(Cm,Cy).length;
+  let lbl=document.getElementById('digCount');
+  if(lbl) lbl.textContent=cnt>0?`(${cnt})`:'';
+}
+function showGelirDetay(){
+  let items=hakMonthlyBreakdown(Cm,Cy);
+  document.getElementById('gdTitle').textContent=`🎁 ${MN[Cm]} ${Cy} — Diğer Gelir Detayı`;
+  let listEl=document.getElementById('gdList');
+  if(!items.length){
+    listEl.innerHTML='<div class="gd-empty">Bu ay için kayıtlı ek gelir yok. "Ayarlar → Ek Haklar" bölümünden düzenli veya tek seferlik ödeme ekleyebilirsiniz.</div>';
+  }else{
+    listEl.innerHTML=items.map(i=>{
+      let d=dateOnly(i.date);
+      let dstr=d.getDate()+' '+MN[d.getMonth()].slice(0,3);
+      let badge=i.repeat==='monthly'
+        ? '<span style="font-size:7px;font-weight:900;color:var(--G);background:var(--GL);padding:2px 5px;border-radius:99px;margin-left:4px;">HER AY</span>'
+        : '<span style="font-size:7px;font-weight:900;color:var(--V);background:var(--VL);padding:2px 5px;border-radius:99px;margin-left:4px;">TEK SEFER</span>';
+      return `<div class="gd-row"><div><div class="gd-name">${hakEsc(i.name)}${badge}</div><div class="gd-date">📅 ${dstr}${i.note?' · '+hakEsc(i.note):''}</div></div><div class="gd-amt">${f(i.amount)}₺</div></div>`;
+    }).join('');
+  }
+  document.getElementById('gdTotal').textContent=f(items.reduce((s,i)=>s+i.amount,0))+'₺';
+  show('ovGelirDetay');
 }
 
 // ══════ ÖDEME TAKVİMİ ══════
@@ -1727,18 +1857,39 @@ function renderTakvim(){
   if(!el) return;
   let now=new Date(), m=now.getMonth(), y=now.getFullYear();
   let items=hakMonthlyBreakdown(m,y);
-  let tot=items.reduce((s,i)=>s+i.amount,0);
-  let html=`<div class="tkv-hero"><div><div class="l">${MN[m]} ${y} BEKLENEN EK GELİR</div><div class="v">${f(tot)}₺</div></div><div style="font-size:22px;">🎁</div></div>`;
-  if(!items.length){
-    html+='<div class="tkv-empty">Bu ay için planlı bir ödeme kaydı yok.</div>';
-  } else {
-    html+=items.map(i=>{
-      let d=new Date(i.date+'T00:00:00');
+  let regular=items.filter(i=>i.repeat==='monthly');
+  let once=items.filter(i=>i.repeat!=='monthly');
+  let total=items.reduce((s,i)=>s+i.amount,0);
+  let regularTotal=regular.reduce((s,i)=>s+i.amount,0);
+  let onceTotal=once.reduce((s,i)=>s+i.amount,0);
+
+  let html=`<div class="tkv-hero">
+    <div><div class="l">${MN[m]} ${y} BEKLENEN EK GELİR</div><div class="v">${f(total)}₺</div>
+      <div style="font-size:7px;opacity:.75;margin-top:2px;">Düzenli: ${f(regularTotal)}₺ · Tek seferlik: ${f(onceTotal)}₺</div>
+    </div><div style="font-size:22px;">🎁</div>
+  </div>`;
+
+  if(regular.length){
+    html+=`<div style="font-size:9px;font-weight:900;color:var(--G);margin:7px 2px 5px;">🔁 HER AY DÜZENLİ</div>`;
+    html+=regular.map(i=>{
+      let d=dateOnly(i.date);
+      return `<div class="tkv-item" style="border-left-color:var(--G);">
+        <div class="tkv-day" style="background:var(--GL);color:var(--G);">${d.getDate()}<span>${MN[d.getMonth()].slice(0,3)}</span></div>
+        <div class="tkv-info"><div class="tkv-name">${hakEsc(i.name)}</div><div class="tkv-note">${hakEsc(i.note||'Her ay düzenli ödeme')}</div></div>
+        <div class="tkv-amt" style="color:var(--G);">${f(i.amount)}₺</div>
+      </div>`;
+    }).join('');
+  }
+  if(once.length){
+    html+=`<div style="font-size:9px;font-weight:900;color:var(--O);margin:10px 2px 5px;">🎁 TEK SEFERLİK</div>`;
+    html+=once.map(i=>{
+      let d=dateOnly(i.date);
       return `<div class="tkv-item"><div class="tkv-day">${d.getDate()}<span>${MN[d.getMonth()].slice(0,3)}</span></div>
-        <div class="tkv-info"><div class="tkv-name">${i.name}</div><div class="tkv-note">${i.note||'Ek hak / ödeme'}</div></div>
+        <div class="tkv-info"><div class="tkv-name">${hakEsc(i.name)}</div><div class="tkv-note">${hakEsc(i.note||'Tek seferlik ek hak / ödeme')}</div></div>
         <div class="tkv-amt">${f(i.amount)}₺</div></div>`;
     }).join('');
   }
+  if(!items.length) html+='<div class="tkv-empty">Bu ay için planlı bir ödeme kaydı yok.</div>';
   el.innerHTML=html;
 }
 
@@ -1757,14 +1908,52 @@ function saveAll(){
 
 function showQR(){ show('ovQR'); }
 
+const SET_TITLES={kisisel:'👤 Kişisel Bilgiler',mali:'💰 Mali Bilgiler',hak:'🎁 Ek Haklar & Ödemeler',gorunum:'🎨 Görünüm & Tercihler',guvenlik:'🔐 Güvenlik & Bildirimler',personel:'👥 Personel'};
+function initSetPanels(){
+  document.querySelectorAll('.set-panel').forEach(panel=>{
+    if(panel.dataset.init) return; panel.dataset.init='1';
+    let key=panel.id.replace('spanel-','');
+    let body=document.createElement('div'); body.className='sp-body';
+    while(panel.firstChild) body.appendChild(panel.firstChild);
+    let head=document.createElement('div'); head.className='sp-head';
+    head.innerHTML='<div class="sp-back" onclick="closeSetPanel()">←</div><div class="sp-title">'+(SET_TITLES[key]||'Ayarlar')+'</div>';
+    panel.appendChild(head); panel.appendChild(body);
+    if(key!=='personel'){
+      let foot=document.createElement('div'); foot.className='sp-foot';
+      foot.innerHTML='<button class="settings-save-btn" onclick="saveSettings()">💾 Kaydet</button>';
+      panel.appendChild(foot);
+    }
+  });
+}
 function showSetTab(key){
-  document.querySelectorAll('.set-tab').forEach(el=>el.classList.remove('on'));
+  initSetPanels();
+  let panel=document.getElementById('spanel-'+key);
+  if(!panel) return;
   document.querySelectorAll('.set-panel').forEach(el=>el.classList.remove('on'));
-  let tab=document.getElementById('stab-'+key), panel=document.getElementById('spanel-'+key);
-  if(tab) tab.classList.add('on');
-  if(panel) panel.classList.add('on');
-  let sa=document.querySelector('#pg-s .sa');
-  if(sa) sa.scrollTop=0;
+  panel.classList.add('on');
+  let b=panel.querySelector('.sp-body'); if(b) b.scrollTop=0;
+}
+function closeSetPanel(){
+  document.querySelectorAll('.set-panel.on').forEach(el=>el.classList.remove('on'));
+}
+
+// ══════ TELEFON GERİ TUŞU ══════
+let curTab='m', tabStack=[];
+function setupBackButton(){
+  try{
+    history.replaceState({a:0},'');
+    history.pushState({a:1},'');
+    window.addEventListener('popstate',function(){
+      let lock=document.getElementById('lockScreen');
+      if(lock && getComputedStyle(lock).display!=='none'){ history.pushState({a:1},''); return; }
+      let ov=document.querySelectorAll('.ov.on');
+      if(ov.length){ ov.forEach(o=>o.classList.remove('on')); history.pushState({a:1},''); return; }
+      if(document.querySelector('.set-panel.on')){ closeSetPanel(); history.pushState({a:1},''); return; }
+      if(tabStack.length){ ST(tabStack.pop(),true); history.pushState({a:1},''); return; }
+      if(curTab!=='m'){ ST('m',true); history.pushState({a:1},''); return; }
+      history.back(); // ana sayfadayken uygulamadan çık
+    });
+  }catch(e){}
 }
 
 function toast(msg){
@@ -2131,6 +2320,8 @@ window.onload=function(){
   showLockIfNeeded();
   registerPWA();
   startNotificationLoop();
+  initSetPanels();
+  setupBackButton();
 };
 </script>
 </body>
