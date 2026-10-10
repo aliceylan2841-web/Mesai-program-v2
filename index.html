@@ -1009,6 +1009,31 @@ table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:to
 </div>
 
 <script>
+// ══════ VERİ KORUMA: kalıcı depolama + IndexedDB yedek kopya ══════
+(function(){
+  try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+  const DB='mesai_backup',ST_='kv';
+  function open(cb){ try{ let r=indexedDB.open(DB,1); r.onupgradeneeded=()=>r.result.createObjectStore(ST_); r.onsuccess=()=>cb(r.result); r.onerror=()=>cb(null);}catch(e){cb(null);} }
+  let t=null;
+  function mirror(){ clearTimeout(t); t=setTimeout(()=>{ open(db=>{ if(!db) return; try{
+    let all={}; for(let i=0;i<localStorage.length;i++){ let k=localStorage.key(i); all[k]=localStorage.getItem(k); }
+    db.transaction(ST_,'readwrite').objectStore(ST_).put(JSON.stringify(all),'all'); }catch(e){} }); },600); }
+  try{
+    const _set=Storage.prototype.setItem, _rem=Storage.prototype.removeItem;
+    Storage.prototype.setItem=function(k,v){ _set.call(this,k,v); if(this===localStorage) mirror(); };
+    Storage.prototype.removeItem=function(k){ _rem.call(this,k); if(this===localStorage) mirror(); };
+  }catch(e){}
+  // localStorage boşsa (tarayıcı sildiyse) yedekten geri yükle
+  try{
+    if(localStorage.length===0 && !sessionStorage.getItem('mp_restored')){
+      open(db=>{ if(!db) return; let g=db.transaction(ST_).objectStore(ST_).get('all');
+        g.onsuccess=()=>{ if(g.result){ try{ let o=JSON.parse(g.result);
+          if(Object.keys(o).length){ Object.keys(o).forEach(k=>localStorage.setItem(k,o[k])); sessionStorage.setItem('mp_restored','1'); location.reload(); } }catch(e){} } };
+      });
+    }
+  }catch(e){}
+})();
+
 // ══════ DİL / LANGUAGE ══════
 const LANG=(localStorage.getItem('mp_lang')==='en')?'en':'tr';
 function APP_LOC(){return LANG==='en'?'en-US':'tr-TR';}
