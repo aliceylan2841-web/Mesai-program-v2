@@ -464,6 +464,17 @@ table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:to
 .sp-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:10px 8px;-webkit-overflow-scrolling:touch;}
 .sp-foot{flex-shrink:0;padding:8px 10px;padding-bottom:max(8px,env(safe-area-inset-bottom));background:var(--CARD);border-top:1px solid var(--BD);}
 .sp-foot .settings-save-btn{margin-top:0;}
+
+.vbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;background:linear-gradient(135deg,#7c3aed,#1a56db);color:#fff;border:none;border-radius:12px;padding:11px;font-weight:800;font-size:13px;font-family:var(--F);box-shadow:0 3px 10px rgba(26,86,219,.25);margin-bottom:6px;}
+.vbtn.rec{background:linear-gradient(135deg,#dc2626,#b91c1c);animation:vpulse 1s infinite;}
+@keyframes vpulse{0%,100%{opacity:1}50%{opacity:.7}}
+.vstat{font-size:11px;font-weight:700;color:var(--TX2);min-height:15px;margin-bottom:8px;line-height:1.4;word-break:break-word;}
+.vhint{font-size:9px;color:var(--TX2);font-weight:700;margin-bottom:4px;opacity:.85;}
+.staff-tools{display:flex;gap:6px;margin-left:auto;position:sticky;right:0;background:var(--CARD);padding-left:4px;flex-shrink:0;}
+.staff-mic{font-size:14px;padding:3px 9px;border-style:solid;}
+.staff-mic.rec{background:#dc2626;color:#fff;border-color:#dc2626;animation:vpulse 1s infinite;}
+#mainVoiceStat:empty{display:none;}
+#mainVoiceStat{padding-top:6px !important;padding-bottom:2px;}
 </style>
 </head>
 <body>
@@ -491,6 +502,7 @@ table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:to
 </div>
 
 <div class="staff-bar" id="staffBar"></div>
+<div class="vstat" id="mainVoiceStat" style="padding:0 10px;margin:0;"></div>
 
 <div class="tabs">
   <div class="tab on" onclick="ST('m')" id="tab-m"><span class="ic">📆</span>MESAİ</div>
@@ -619,6 +631,7 @@ table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:to
         <button class="dash-backup-btn" onclick="exportBackup()">⬇️ Yedek Al</button>
         <button class="dash-backup-btn" onclick="document.getElementById('restoreFile').click()">⬆️ Geri Yükle</button>
       </div>
+      <button class="dash-backup-btn" style="width:100%;margin-top:6px;" onclick="shareBackup()">☁️ Yedeği Buluta Gönder (Drive / WhatsApp / Mail)</button>
       <input type="file" id="restoreFile" accept="application/json" style="display:none" onchange="importBackup(this.files[0])">
       <div style="font-size:9px;color:var(--TX2);font-weight:600;margin-top:8px;line-height:1.4;">Not: Gerçek zamanlı sunucu tabanlı bulut senkronizasyonu bu ortamda desteklenmiyor. "Yedek Al" verilerinizi bir JSON dosyası olarak indirir; istediğiniz bulut sürücüsüne (Drive, iCloud vb.) siz kaydedebilir, "Geri Yükle" ile aynı cihazda veya başka bir cihazda içe aktarabilirsiniz.</div>
     </div>
@@ -892,6 +905,7 @@ table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:to
       <div class="dob m" onclick="openMesai()"><span class="ic">⏱️</span>Mesai Ekle</div>
       <div class="dob iz" onclick="openIzinDay()"><span class="ic">🏖️</span>İzin Ekle</div>
     </div>
+    <button type="button" class="vbtn" style="margin-top:2px" onclick="openMesai();startVoice()">🎤 Sesli Mesai Ekle</button>
     <button class="bc" style="width:100%" onclick="hide('ovDay')">Kapat</button>
   </div>
 </div>
@@ -900,6 +914,9 @@ table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:to
   <div class="mb">
     <div class="mh"></div>
     <div class="mt" id="ovMesT">⏱️ Mesai Girişi</div>
+    <button type="button" class="vbtn" id="voiceBtn" onclick="startVoice()">🎤 Sesli Mesai Ekle</button>
+    <div class="vstat" id="voiceStat"></div>
+    <div class="vhint">Örnek: “yüzde elli iki buçuk saat, yüzde yüz bir saat” • sonuna “kaydet” derseniz otomatik kaydeder</div>
     <div class="ms">SAATLERİ GİRİN</div>
     <div class="mg">
       <div class="mi"><label>%50</label><input type="number" id="e50" placeholder="0" min="0" step="0.5"></div>
@@ -1009,31 +1026,6 @@ table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:to
 </div>
 
 <script>
-// ══════ VERİ KORUMA: kalıcı depolama + IndexedDB yedek kopya ══════
-(function(){
-  try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
-  const DB='mesai_backup',ST_='kv';
-  function open(cb){ try{ let r=indexedDB.open(DB,1); r.onupgradeneeded=()=>r.result.createObjectStore(ST_); r.onsuccess=()=>cb(r.result); r.onerror=()=>cb(null);}catch(e){cb(null);} }
-  let t=null;
-  function mirror(){ clearTimeout(t); t=setTimeout(()=>{ open(db=>{ if(!db) return; try{
-    let all={}; for(let i=0;i<localStorage.length;i++){ let k=localStorage.key(i); all[k]=localStorage.getItem(k); }
-    db.transaction(ST_,'readwrite').objectStore(ST_).put(JSON.stringify(all),'all'); }catch(e){} }); },600); }
-  try{
-    const _set=Storage.prototype.setItem, _rem=Storage.prototype.removeItem;
-    Storage.prototype.setItem=function(k,v){ _set.call(this,k,v); if(this===localStorage) mirror(); };
-    Storage.prototype.removeItem=function(k){ _rem.call(this,k); if(this===localStorage) mirror(); };
-  }catch(e){}
-  // localStorage boşsa (tarayıcı sildiyse) yedekten geri yükle
-  try{
-    if(localStorage.length===0 && !sessionStorage.getItem('mp_restored')){
-      open(db=>{ if(!db) return; let g=db.transaction(ST_).objectStore(ST_).get('all');
-        g.onsuccess=()=>{ if(g.result){ try{ let o=JSON.parse(g.result);
-          if(Object.keys(o).length){ Object.keys(o).forEach(k=>localStorage.setItem(k,o[k])); sessionStorage.setItem('mp_restored','1'); location.reload(); } }catch(e){} } };
-      });
-    }
-  }catch(e){}
-})();
-
 // ══════ DİL / LANGUAGE ══════
 const LANG=(localStorage.getItem('mp_lang')==='en')?'en':'tr';
 function APP_LOC(){return LANG==='en'?'en-US':'tr-TR';}
@@ -1294,7 +1286,7 @@ function renderStaffBar(){
       <span class="staff-dot" style="background:${s.color}"></span>${s.name}
       ${s.id!=='default'?`<span class="staff-del" onclick="event.stopPropagation();delStaff('${s.id}')">✕</span>`:''}
     </div>`).join('');
-  html+=`<div class="staff-chip staff-add" onclick="addStaff()">➕ Ekle</div>`;
+  html+=`<div class="staff-tools"><div class="staff-chip staff-add" onclick="addStaff()">➕ Ekle</div><div class="staff-chip staff-add staff-mic" id="mainVoiceBtn" title="Sesli komut" onclick="startVoice('main')">🎤</div></div>`;
   el.innerHTML=html;
 }
 
@@ -1441,7 +1433,7 @@ function f(n){return Math.round(n).toLocaleString(APP_LOC());}
 // ══════ TAKVİM ══════
 let _today=new Date(); _today.setHours(0,0,0,0);
 function renderCal(){
-  getC();
+  getC(); persistDB();
   document.getElementById('monthLbl').textContent=MN[Cm]+' '+Cy;
   let first=new Date(Cy,Cm,1).getDay(); first=first===0?6:first-1;
   let dmax=new Date(Cy,Cm+1,0).getDate();
@@ -1540,6 +1532,8 @@ function openMesai(){
     let keys=['r50','r65','r75','r100','r200','rX'];
     document.getElementById(id).value=ent[keys[i]]||'';
   });
+  VBASE={}; ['r50','r65','r75','r100','r200','rX'].forEach(k=>VBASE[k]=ent[k]||0);
+  let vs=document.getElementById('voiceStat'); if(vs) vs.textContent='';
   hide('ovDay'); show('ovMes');
 }
 function saveMes(){
@@ -1552,6 +1546,234 @@ function saveMes(){
   if(t===0&&!DB[key].izin) delete DB[key];
   hide('ovMes'); renderCal();
 }
+
+// ══════ SESLİ KOMUT (mesai + izin) ══════
+let VREC=null, VBASE=null, VUNDO=null;
+const VP_ONES={'sıfır':0,'bir':1,'iki':2,'üç':3,'dört':4,'beş':5,'altı':6,'yedi':7,'sekiz':8,'dokuz':9};
+const VP_TENS={'on':10,'yirmi':20,'otuz':30,'kırk':40,'elli':50,'altmış':60,'yetmiş':70,'seksen':80,'doksan':90};
+const VP_VALID={50:'r50',65:'r65',75:'r75',100:'r100',200:'r200'};
+const VP_LABEL={r50:'%50',r65:'%65',r75:'%75',r100:'%100',r200:'%200',rX:'ÖZEL'};
+const VP_RK=['r50','r65','r75','r100','r200','rX'];
+const VP_MON=['ocak','şubat','mart','nisan','mayıs','haziran','temmuz','ağustos','eylül','ekim','kasım','aralık'];
+const VP_IZ=[['yıllık','yillik'],['ücretsiz','ucretsiz'],['ücretli','ucretli'],['doğum','dogum'],['ölüm','olum'],['sağlık','saglik'],['rapor','saglik'],['evlilik','evlilik'],['düğün','evlilik']];
+
+function parseVoiceMesai(txt){
+  let s=txt.toLocaleLowerCase('tr-TR').replace(/%/g,' yüzde ').replace(/[^\p{L}\p{N}.,]+/gu,' ').trim();
+  let tk=s.split(' ').map(x=>x.replace(/^[.,]+|[.,]+$/g,'')).filter(Boolean);
+  const isDigit=w=>/^\d+([.,]\d+)?$/.test(w);
+  function readNum(i){
+    if(i>=tk.length) return [];
+    if(isDigit(tk[i])) return [{v:parseFloat(tk[i].replace(',','.')),end:i+1}];
+    let c=[],cur=0,j=i;
+    while(j<tk.length){
+      let w=tk[j];
+      if(w in VP_ONES) cur+=VP_ONES[w];
+      else if(w in VP_TENS) cur+=VP_TENS[w];
+      else if(w==='yüz'||w==='yuz') cur=(cur||1)*100;
+      else break;
+      c.push({v:cur,end:j+1}); j++;
+    }
+    return c;
+  }
+  let date=null, dur=1, izin=null, izWord=false, del=false, drop=new Set();
+  // gün ifadeleri
+  tk.forEach((w,i)=>{
+    if(/^bugün/.test(w)){date={off:0};drop.add(i);}
+    else if(/^dün/.test(w)){date={off:-1};drop.add(i);}
+    else if(/^yarın/.test(w)){date={off:1};drop.add(i);}
+  });
+  tk.forEach((w,i)=>{
+    let mi=VP_MON.findIndex(m=>w.startsWith(m));
+    if(mi<0) return;
+    for(let j=Math.max(0,i-3);j<i;j++){
+      let c=readNum(j).find(x=>x.end===i);
+      if(c&&c.v>=1&&c.v<=31){ date={d:c.v,m:mi}; for(let k=j;k<=i;k++) drop.add(k); return; }
+    }
+  });
+  tk.forEach((w,i)=>{
+    if(w==='ayın'||w==='ayin'){
+      // "beşi", "onbeşinde" gibi ekli sayı sözcüklerini köküne indir
+      const keys=Object.keys(Object.assign({},VP_ONES,VP_TENS)).sort((a,b)=>b.length-a.length);
+      for(let j=i+1;j<Math.min(tk.length,i+4);j++){
+        if(isDigit(tk[j])||(tk[j] in VP_ONES)||(tk[j] in VP_TENS)) continue;
+        let k=keys.find(x=>tk[j].startsWith(x)&&tk[j].length-x.length<=5);
+        if(k) tk[j]=k;
+        break;
+      }
+      let c=readNum(i+1);
+      if(c.length){ let n=c[c.length-1]; if(n.v>=1&&n.v<=31){ date={d:n.v}; drop.add(i); for(let k=i+1;k<n.end;k++) drop.add(k); } }
+    }
+  });
+  // süre: "3 gün"
+  tk.forEach((w,i)=>{
+    if(/^gün(lük|lü)?$/.test(w)){
+      for(let j=Math.max(0,i-3);j<i;j++){
+        if(drop.has(j)) continue;
+        let c=readNum(j).find(x=>x.end===i);
+        if(c&&c.v>=1&&c.v<=60){ dur=Math.round(c.v); for(let k=j;k<=i;k++) drop.add(k); return; }
+      }
+    }
+  });
+  // izin türü / silme
+  tk.forEach((w,i)=>{
+    if(/^(sil|kaldır|iptal)/.test(w)){ del=true; drop.add(i); return; }
+    for(const [p,t] of VP_IZ){ if(w.startsWith(p)){ izin=t; izWord=true; drop.add(i); return; } }
+    if(/^izin|^izni/.test(w)){ izWord=true; if(!izin) izin='yillik'; drop.add(i); }
+  });
+  tk=tk.filter((_,i)=>!drop.has(i));
+
+  // yüzdelik + saat
+  let items=[], i=0;
+  while(i<tk.length){
+    let w=tk[i];
+    if(w==='yüzde'||w==='yuzde'||w==='yüzdelik'){
+      let c=readNum(i+1), pick=null;
+      for(let k=c.length-1;k>=0;k--){ if(VP_VALID[c[k].v]){pick=c[k];break;} }
+      if(pick){ items.push({pct:VP_VALID[pick.v]}); i=pick.end; } else i++;
+      continue;
+    }
+    if(w==='özel'||w==='özl'||w==='ozel'){ items.push({pct:'rX'}); i++; continue; }
+    if(w==='yarım'){ items.push({h:0.5}); i++; if(tk[i]==='saat') i++; continue; }
+    let c=readNum(i);
+    if(c.length){
+      let n=c[c.length-1], v=n.v; i=n.end;
+      if(tk[i]==='buçuk'){ v+=0.5; i++; }
+      if(tk[i]==='dakika'||tk[i]==='dk'){
+        i++; v=v/60;
+        let last=items[items.length-1];
+        if(last&&last.h!==undefined&&last.hr){ last.h+=v; last.hr=false; continue; }
+        items.push({h:v}); continue;
+      }
+      let hadSaat=false;
+      if(tk[i]==='saat'){ i++; hadSaat=true; }
+      items.push({h:v,hr:hadSaat});
+      continue;
+    }
+    i++;
+  }
+  let hoursFirst=items.length&&items[0].h!==undefined;
+  let vals={}, used=items.map(()=>false);
+  items.forEach((it,k)=>{
+    if(!it.pct) return;
+    let j=hoursFirst?k-1:k+1;
+    if(items[j]&&items[j].h!==undefined&&!used[j]){
+      used[j]=true;
+      vals[it.pct]=(vals[it.pct]||0)+Math.round(items[j].h*100)/100;
+    }
+  });
+  return {vals, save:tk.includes('kaydet'), izin, izWord, del, date, dur};
+}
+
+function vResolveDays(res,defDay){
+  let base;
+  if(res.date&&res.date.off!==undefined){ base=new Date(); base.setHours(0,0,0,0); base.setDate(base.getDate()+res.date.off); }
+  else if(res.date&&res.date.d!==undefined){
+    let mm=res.date.m!==undefined?res.date.m:Cm;
+    base=new Date(Cy,mm,res.date.d);
+    if(base.getMonth()!==mm) return null;
+  }
+  else if(defDay) base=new Date(Cy,Cm,defDay);
+  else { base=new Date(); base.setHours(0,0,0,0); }
+  let out=[];
+  for(let k=0;k<(res.dur||1);k++){ let d=new Date(base); d.setDate(base.getDate()+k); out.push(d); }
+  return out;
+}
+
+function vPersist(){ try{ localStorage.setItem(K('mp11b'),JSON.stringify(DB)); }catch(e){} }
+
+function voiceApply(res,defDay,st){
+  let hasHours=Object.keys(res.vals).length>0;
+  if(!res.izin&&!hasHours&&!res.del) return false;
+  let days=vResolveDays(res,defDay);
+  if(!days){ st.textContent='⚠️ Geçersiz tarih'; return null; }
+  let snap={};
+  days.forEach(d=>{
+    let key=`${d.getDate()}-${d.getMonth()}-${d.getFullYear()}`;
+    snap[key]=DB[key]?JSON.parse(JSON.stringify(DB[key])):null;
+    let e=DB[key]||(DB[key]={});
+    if(res.del){
+      if(res.izWord) delete e.izin; else VP_RK.forEach(k=>delete e[k]);
+    } else if(res.izin){
+      e.izin=res.izin;
+    } else {
+      VP_RK.forEach(k=>{ e[k]=Math.round(((e[k]||0)+(res.vals[k]||0))*100)/100; });
+    }
+    let t=VP_RK.reduce((a,k)=>a+(e[k]||0),0);
+    if(t===0&&!e.izin) delete DB[key];
+  });
+  VUNDO=snap;
+  let f0=days[0], fN=days[days.length-1];
+  if(f0.getMonth()!==Cm||f0.getFullYear()!==Cy){ Cm=f0.getMonth(); Cy=f0.getFullYear(); loadMonthExtras(); }
+  renderCal(); vPersist();
+  let when=days.length>1?`${f0.getDate()}–${fN.getDate()} ${MN[fN.getMonth()]}`:`${f0.getDate()} ${MN[f0.getMonth()]}`;
+  let what;
+  if(res.del) what=(res.izWord?'izin':'mesai')+' silindi';
+  else if(res.izin) what=ILF[res.izin];
+  else what=Object.keys(res.vals).map(k=>`${VP_LABEL[k]}: +${res.vals[k]} sa`).join(' · ');
+  let msg=`✅ ${when} — ${what}`;
+  st.textContent=msg;
+  let b=document.createElement('button'); b.type='button'; b.textContent='↩️ Geri al';
+  b.style.cssText='margin-left:8px;border:none;background:var(--BG);color:var(--P);font-weight:800;border-radius:99px;padding:3px 10px;font-size:11px;font-family:var(--F);';
+  b.onclick=()=>voiceUndo(st); st.appendChild(b);
+  toast(msg);
+  return true;
+}
+
+function voiceUndo(st){
+  if(!VUNDO) return;
+  for(const key in VUNDO){ if(VUNDO[key]===null) delete DB[key]; else DB[key]=VUNDO[key]; }
+  VUNDO=null; renderCal(); vPersist();
+  if(st) st.textContent='↩️ Geri alındı';
+}
+
+function startVoice(ctx){
+  ctx=ctx||'modal';
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ toast('Bu tarayıcı sesli komutu desteklemiyor'); return; }
+  if(VREC){ try{VREC.stop();}catch(e){} return; }
+  const main=ctx==='main';
+  const st=document.getElementById(main?'mainVoiceStat':'voiceStat'), btn=document.getElementById(main?'mainVoiceBtn':'voiceBtn');
+  const label=main?'🎤':(btn.dataset.l||(btn.dataset.l=btn.textContent));
+  let r=new SR(), txt='';
+  r.lang='tr-TR'; r.interimResults=true; r.continuous=false; r.maxAlternatives=1;
+  VREC=r;
+  r.onstart=()=>{ btn.classList.add('rec'); btn.textContent=main?'⏹':'⏹ Dinleniyor… (durdurmak için dokun)'; st.textContent=main?'Konuşun… örn: “bugün yüzde elli iki saat”, “15 kasım yıllık izin”, “dün izni sil”':'Konuşun…'; };
+  r.onresult=e=>{ txt=''; for(let i=0;i<e.results.length;i++) txt+=e.results[i][0].transcript+' '; txt=txt.trim(); st.textContent='🗣️ '+txt; };
+  r.onerror=e=>{
+    let m={'not-allowed':'Mikrofon izni verilmedi','service-not-allowed':'Mikrofon izni verilmedi','no-speech':'Ses algılanamadı, tekrar deneyin','network':'Ses tanıma için internet gerekli','audio-capture':'Mikrofon bulunamadı'}[e.error]||('Ses hatası: '+e.error);
+    st.textContent='⚠️ '+m;
+  };
+  r.onend=()=>{
+    VREC=null; btn.classList.remove('rec'); btn.textContent=label;
+    if(txt) applyVoiceMesai(txt,ctx,st);
+  };
+  try{ r.start(); }catch(e){ VREC=null; }
+}
+
+function applyVoiceMesai(txt,ctx,st){
+  let res=parseVoiceMesai(txt), keys=Object.keys(res.vals);
+  let cmd=res.izin||res.del||res.date||res.dur>1;
+  if(ctx==='main'||cmd){
+    let ok=voiceApply(res,ctx==='modal'?eDay:null,st);
+    if(ok){ if(ctx==='modal') hide('ovMes'); return; }
+    if(ok===null) return;
+    st.textContent='🗣️ '+txt+'  →  ❓ Anlaşılamadı. Örn: “bugün yüzde elli iki saat”';
+    return;
+  }
+  if(!keys.length){
+    st.textContent='🗣️ '+txt+'  →  ❓ Anlaşılamadı. Örn: “yüzde elli iki saat”';
+    return;
+  }
+  let base=VBASE||{};
+  VP_RK.forEach(k=>{
+    let v=(base[k]||0)+(res.vals[k]||0);
+    document.getElementById('e'+k.slice(1)).value=v||'';
+  });
+  let sum=keys.map(k=>`${VP_LABEL[k]}: +${res.vals[k]} sa`).join(' · ');
+  st.textContent='✅ '+sum+(res.save?'':'  — Kaydet’e basın');
+  if(res.save){ saveMes(); vPersist(); toast('✅ Mesai kaydedildi: '+sum); }
+}
+
 function openIzinDay(){
   if(eDay===null) return;
   let key=`${eDay}-${Cm}-${Cy}`, ent=DB[key]||{};
@@ -2156,7 +2378,7 @@ function renderTakvim(){
 }
 
 // ══════ SAVE / LOAD ══════
-function saveAll(){
+function saveAll(silent){
   localStorage.setItem(K('mp11b'),JSON.stringify(DB));
   ['iMaas','iSaatUcr'].forEach(id=>{
     let el=document.getElementById(id);
@@ -2165,7 +2387,7 @@ function saveAll(){
   // aya özel alanları kaydet (iDig artık Ek Haklar'dan otomatik hesaplanır, ayrıca kaydedilmez)
   ['iIkr','iDev'].forEach(id=>saveMonthExtra(id));
   saveSettingsData();
-  toast('✅ Kaydedildi');
+  if(!silent) toast('✅ Kaydedildi');
 }
 
 function showQR(){ show('ovQR'); }
@@ -2443,6 +2665,46 @@ async function exportExcel(){
   }catch(err){ toast('⚠️ Excel oluşturulamadı (internet gerekli)'); }
 }
 
+
+// ══════ OTOMATİK KAYIT + YEDEK KOPYA (veri kaybını önler) ══════
+let APP_READY=false, _autoT=null, _idbT=null;
+function autoSave(){ if(!APP_READY) return; try{ saveAll(true); }catch(e){} idbMirror(); }
+function autoSaveSoon(){ clearTimeout(_autoT); _autoT=setTimeout(autoSave,600); }
+function persistDB(){ if(!APP_READY) return; try{ localStorage.setItem(K('mp11b'),JSON.stringify(DB)); }catch(e){} clearTimeout(_idbT); _idbT=setTimeout(idbMirror,800); }
+function fullSnapshot(){ let o={}; for(let i=0;i<localStorage.length;i++){ let k=localStorage.key(i); if(k&&k.startsWith('mp')) o[k]=localStorage.getItem(k); } return o; }
+function idbOpen(cb){ try{ let r=indexedDB.open('mesai_backup',1); r.onupgradeneeded=()=>r.result.createObjectStore('kv'); r.onsuccess=()=>cb(r.result); r.onerror=()=>cb(null); }catch(e){ cb(null); } }
+function idbMirror(){ idbOpen(db=>{ if(!db) return; try{ db.transaction('kv','readwrite').objectStore('kv').put({t:Date.now(),data:fullSnapshot()},'snap'); }catch(e){} }); }
+(function idbRestore(){
+  try{
+    let has=['mp_staff_list','mp11b','mp12_settings'].some(k=>localStorage.getItem(k));
+    if(has||sessionStorage.getItem('mp_restored')) return;
+    idbOpen(db=>{ if(!db) return;
+      let g=db.transaction('kv').objectStore('kv').get('snap');
+      g.onsuccess=()=>{ let v=g.result; if(v&&v.data&&(v.data.mp11b||v.data.mp_staff_list||v.data.mp12_settings)){
+        Object.keys(v.data).forEach(k=>localStorage.setItem(k,v.data[k]));
+        sessionStorage.setItem('mp_restored','1'); location.reload(); } };
+    });
+  }catch(e){}
+})();
+try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+document.addEventListener('input',autoSaveSoon,true);
+document.addEventListener('change',autoSaveSoon,true);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') autoSave(); });
+window.addEventListener('pagehide',autoSave);
+
+async function shareBackup(){
+  autoSave();
+  let data={version:12,exportedAt:new Date().toISOString(),full:fullSnapshot()};
+  let name='mesai_yedek_'+new Date().toISOString().slice(0,10)+'.json';
+  let file=new File([JSON.stringify(data)],name,{type:'application/json'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file],title:'Mesai Yedeği'}); toast('✅ Yedek paylaşıldı'); }catch(e){}
+  } else {
+    let a=document.createElement('a'); a.href=URL.createObjectURL(file); a.download=name; a.click();
+    toast('✅ Yedek dosyası indirildi');
+  }
+}
+
 // ══════ YEDEKLEME (BACKUP/RESTORE) ══════
 function exportBackup(){
   let data={
@@ -2462,6 +2724,11 @@ function importBackup(file){
   reader.onload=async function(e){
     try{
       let data=JSON.parse(e.target.result);
+      if(data.full){
+        if(!await customConfirm('Tüm profiller ve ayarlar bu yedekle değiştirilecek. Emin misiniz?')) return;
+        Object.keys(data.full).forEach(k=>localStorage.setItem(k,data.full[k]));
+        toast('✅ Yedek geri yüklendi'); setTimeout(()=>location.reload(),700); return;
+      }
       if(!await customConfirm('Mevcut veriler bu profildeki yedekle değiştirilecek. Emin misiniz?')) return;
       if(data.DB) DB=data.DB;
       if(data.SETTINGS) SETTINGS=data.SETTINGS;
@@ -2586,6 +2853,7 @@ window.onload=function(){
   setupBackButton();
   document.getElementById('langSel').value=LANG;
   applyLang();
+  APP_READY=true; idbMirror();
 };
 </script>
 </body>
