@@ -475,6 +475,21 @@ table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:to
 .staff-mic.rec{background:#dc2626;color:#fff;border-color:#dc2626;animation:vpulse 1s infinite;}
 #mainVoiceStat:empty{display:none;}
 #mainVoiceStat{padding-top:6px !important;padding-bottom:2px;}
+.d.sel{border-color:var(--P)!important;background:var(--PL)!important;box-shadow:inset 0 0 0 1.5px var(--P);}
+.d.sel::after{content:'✓';position:absolute;top:0;left:3px;font-size:9px;font-weight:900;color:var(--P);}
+body.selmode .xb{display:none!important;}
+body.selmode .sa{padding-bottom:130px;}
+.sel-chips{display:none;gap:5px;padding:4px 8px;overflow-x:auto;flex-shrink:0;}
+body.selmode .sel-chips{display:flex;}
+.priv-bar{justify-content:space-between !important;gap:6px;}
+.sel-bar{position:fixed;left:0;right:0;bottom:0;z-index:500;display:none;background:var(--CARD);border-top:1.5px solid var(--P);padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 16px rgba(0,0,0,.18);}
+body.selmode .sel-bar{display:block;}
+.sel-info{font-size:11px;font-weight:800;color:var(--TX);margin-bottom:6px;display:flex;align-items:center;flex-wrap:wrap;gap:6px;}
+.sel-act{display:flex;gap:6px;}
+.sel-a{flex:1;border:none;border-radius:10px;padding:10px 4px;font-weight:800;font-size:12px;font-family:var(--F);color:#fff;background:var(--P);}
+.sel-a.mes{background:var(--G);}
+.sel-a.del{background:var(--R);flex:0 0 44px;}
+.sel-a.x{background:var(--TX2);flex:0 0 44px;}
 </style>
 </head>
 <body>
@@ -530,10 +545,18 @@ table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:to
     <div class="li"><div class="ld" style="background:var(--O)"></div>Evlilik</div>
   </div>
   <div class="priv-bar">
+    <div class="priv-btn" id="selBtn" onclick="toggleSelMode()"><span>☑️</span><span id="selBtnTxt">Çoklu Seç</span></div>
     <div class="priv-btn" id="privBtn" onclick="togglePriv()">
       <span id="privIc">👁️</span>
       <span id="privTxt">Ücretleri Gizle</span>
     </div>
+  </div>
+  <div class="sel-chips" id="selChips">
+    <div class="staff-chip staff-add" onclick="selQuick('all')">Tüm ay</div>
+    <div class="staff-chip staff-add" onclick="selQuick('nosun')">Pazarsız</div>
+    <div class="staff-chip staff-add" onclick="selQuick('wk')">Hafta içi</div>
+    <div class="staff-chip staff-add" onclick="selQuick('we')">Hafta sonu</div>
+    <div class="staff-chip staff-add" onclick="selQuick('none')">Seçimi sil</div>
   </div>
   <div class="sa">
     <div class="cw"><div class="cc">
@@ -1025,6 +1048,15 @@ table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:to
   </div>
 </div>
 
+<div class="sel-bar" id="selBar">
+  <div class="sel-info"><span id="selCnt">0 gün seçili</span><span id="selMsg"></span></div>
+  <div class="sel-act">
+    <button class="sel-a mes" onclick="openMesaiBulk()">⏱️ Mesai Gir</button>
+    <button class="sel-a" onclick="openIzinBulk()">🏖️ İzin Gir</button>
+    <button class="sel-a del" onclick="bulkClear()">🗑️</button>
+    <button class="sel-a x" onclick="toggleSelMode(false)">✖️</button>
+  </div>
+</div>
 <script>
 // ══════ DİL / LANGUAGE ══════
 const LANG=(localStorage.getItem('mp_lang')==='en')?'en':'tr';
@@ -1339,6 +1371,7 @@ const BL={r50:'%50',r65:'%65',r75:'%75',r100:'%100',r200:'%200',rX:'ÖZL'};
 
 // ══════ TABS ══════
 function ST(n,fromBack){
+  if(typeof SELMODE!=='undefined'&&SELMODE&&n!=='m') toggleSelMode(false);
   if(!fromBack && n!==curTab){ tabStack.push(curTab); if(tabStack.length>30) tabStack.shift(); }
   curTab=n; closeSetPanel();
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
@@ -1487,11 +1520,12 @@ function renderCal(){
       div.appendChild(xb);
     }
     div.dataset.day=dn;
-    div.addEventListener('click',function(){openDay(+this.dataset.day);});
+    div.addEventListener('click',function(){ if(SELMODE){toggleDaySel(+this.dataset.day);return;} openDay(+this.dataset.day);});
     frag.appendChild(div);
   }
   let grid=document.getElementById('cg');
   grid.innerHTML=''; grid.appendChild(frag);
+  markSel();
   renderDagil(); calcOnly();
 }
 function renderDagil(){
@@ -1526,6 +1560,7 @@ function openDay(d){
 }
 function openMesai(){
   if(eDay===null) return;
+  BULK=false;
   let key=`${eDay}-${Cm}-${Cy}`, ent=DB[key]||{};
   document.getElementById('ovMesT').textContent=`⏱️ Mesai — ${eDay} ${MN[Cm]}`;
   ['e50','e65','e75','e100','e200','eX'].forEach((id,i)=>{
@@ -1537,6 +1572,7 @@ function openMesai(){
   hide('ovDay'); show('ovMes');
 }
 function saveMes(){
+  if(BULK){ bulkSaveMes(); return; }
   if(eDay===null) return;
   let key=`${eDay}-${Cm}-${Cy}`;
   if(!DB[key]) DB[key]={};
@@ -1576,23 +1612,77 @@ function parseVoiceMesai(txt){
     return c;
   }
   let date=null, dur=1, izin=null, izWord=false, del=false, drop=new Set();
+  let sc=null, rel=0, wd=null, ex=new Set(), useSel=false, range=null;
+  const REL=w=>/^(geçen|geçtiğimiz|önceki)/.test(w)?-1:/^(gelecek|önümüzdeki|sonraki)/.test(w)?1:0;
+  const MODW=/^(bu|geçen|geçtiğimiz|önceki|gelecek|önümüzdeki|sonraki|tüm|bütün)$/;
+  const WK5=()=>new Set([1,2,3,4,5]), WE2=()=>new Set([6,0]);
+  const WDN=[['pazartesi',1],['salı',2],['çarşamba',3],['perşembe',4],['cumartesi',6],['cuma',5],['pazar',0]];
+  // seçili günler / dönem (ay, hafta) / hafta içi-sonu / gün adları
+  tk.forEach((w,i)=>{
+    if(drop.has(i)) return;
+    if(/^(seçili|seçilen|işaretli)/.test(w)){ useSel=true; drop.add(i); return; }
+    if(w==='ayın'&&/^(tamam|hepsi)/.test(tk[i+1]||'')){ sc='month'; drop.add(i); drop.add(i+1); return; }
+    if(w==='ay'){
+      let pv=tk[i-1]||'', nx=tk[i+1]||'';
+      if(MODW.test(pv)||/^boyunca/.test(nx)){ sc='month'; rel=REL(pv); drop.add(i); if(MODW.test(pv)) drop.add(i-1); }
+      return;
+    }
+    if(w==='haftaya'){ sc='week'; rel=1; drop.add(i); return; }
+    if(/^haftaiçi/.test(w)){ wd=WK5(); drop.add(i); return; }
+    if(/^haftasonu|^haftasonları/.test(w)){ wd=WE2(); drop.add(i); return; }
+    if(w==='hafta'){
+      let nx=tk[i+1]||'';
+      if(/^içi/.test(nx)){ wd=WK5(); drop.add(i); drop.add(i+1); }
+      else if(/^(sonu|sonları)/.test(nx)){ wd=WE2(); drop.add(i); drop.add(i+1); }
+      else { sc='week'; let pv=tk[i-1]||''; rel=REL(pv); drop.add(i); if(MODW.test(pv)) drop.add(i-1); }
+      return;
+    }
+    for(const [n,d] of WDN){
+      if(w.startsWith(n)){
+        if(/^(hariç|dışında)/.test(tk[i+1]||'')){ ex.add(d); drop.add(i); drop.add(i+1); }
+        else { wd=wd||new Set(); wd.add(d); drop.add(i); }
+        return;
+      }
+    }
+  });
+  // aralık: "15 ile 20 arası", "15'ten 20'ye kadar"
+  tk.forEach((w,r)=>{
+    if(range||!/^(kadar|arası|arasında|arasındaki)$/.test(w)) return;
+    let nums=[], mon=null;
+    for(let j=Math.max(0,r-8);j<r;j++){
+      if(drop.has(j)) continue;
+      let mi=VP_MON.findIndex(m=>tk[j].startsWith(m));
+      if(mi>=0){ mon={i:j,m:mi}; continue; }
+      if(/^\d{1,2}$/.test(tk[j])&&+tk[j]>=1&&+tk[j]<=31) nums.push({i:j,v:+tk[j]});
+    }
+    if(nums.length>=2){
+      let a=nums[nums.length-2], b=nums[nums.length-1];
+      if(b.i-a.i<=4){
+        range={a:a.v,b:b.v,m:mon?mon.m:undefined};
+        drop.add(a.i); drop.add(b.i); drop.add(r); if(mon) drop.add(mon.i);
+      }
+    }
+  });
   // gün ifadeleri
   tk.forEach((w,i)=>{
+    if(drop.has(i)) return;
     if(/^bugün/.test(w)){date={off:0};drop.add(i);}
     else if(/^dün/.test(w)){date={off:-1};drop.add(i);}
     else if(/^yarın/.test(w)){date={off:1};drop.add(i);}
   });
   tk.forEach((w,i)=>{
+    if(drop.has(i)) return;
     let mi=VP_MON.findIndex(m=>w.startsWith(m));
     if(mi<0) return;
     for(let j=Math.max(0,i-3);j<i;j++){
+      if(drop.has(j)) continue;
       let c=readNum(j).find(x=>x.end===i);
       if(c&&c.v>=1&&c.v<=31){ date={d:c.v,m:mi}; for(let k=j;k<=i;k++) drop.add(k); return; }
     }
   });
   tk.forEach((w,i)=>{
+    if(drop.has(i)) return;
     if(w==='ayın'||w==='ayin'){
-      // "beşi", "onbeşinde" gibi ekli sayı sözcüklerini köküne indir
       const keys=Object.keys(Object.assign({},VP_ONES,VP_TENS)).sort((a,b)=>b.length-a.length);
       for(let j=i+1;j<Math.min(tk.length,i+4);j++){
         if(isDigit(tk[j])||(tk[j] in VP_ONES)||(tk[j] in VP_TENS)) continue;
@@ -1661,16 +1751,43 @@ function parseVoiceMesai(txt){
       vals[it.pct]=(vals[it.pct]||0)+Math.round(items[j].h*100)/100;
     }
   });
-  return {vals, save:tk.includes('kaydet'), izin, izWord, del, date, dur};
+  return {vals, save:tk.includes('kaydet'), izin, izWord, del, date, dur, scope:sc, rel, wd, ex, useSel, range};
 }
 
 function vResolveDays(res,defDay){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const dim=(y,m)=>new Date(y,m+1,0).getDate();
+  let list=null;
+  if(res.useSel){
+    list=selDates();
+    if(!list.length) return 'Seçili gün yok — önce takvimde gün işaretleyin';
+  } else if(res.range){
+    let mm=res.range.m!==undefined?res.range.m:Cm, a=res.range.a, b=res.range.b;
+    if(a>b){ let t=a; a=b; b=t; }
+    if(b>dim(Cy,mm)) return 'Geçersiz tarih aralığı';
+    list=[]; for(let d=a;d<=b;d++) list.push(new Date(Cy,mm,d));
+  } else if(res.scope||res.wd||(res.ex&&res.ex.size)){
+    list=[];
+    if(res.scope==='month'){
+      let f=new Date(Cy,Cm+(res.rel||0),1), y=f.getFullYear(), m=f.getMonth();
+      for(let d=1;d<=dim(y,m);d++) list.push(new Date(y,m,d));
+    } else {
+      let b=new Date(today); b.setDate(b.getDate()-((b.getDay()+6)%7)+7*(res.rel||0));
+      for(let k=0;k<7;k++){ let d=new Date(b); d.setDate(b.getDate()+k); list.push(d); }
+    }
+  }
+  if(list){
+    if(res.wd) list=list.filter(d=>res.wd.has(d.getDay()));
+    if(res.ex&&res.ex.size) list=list.filter(d=>!res.ex.has(d.getDay()));
+    if(!list.length) return 'Bu koşulda gün bulunamadı';
+    return list;
+  }
   let base;
   if(res.date&&res.date.off!==undefined){ base=new Date(); base.setHours(0,0,0,0); base.setDate(base.getDate()+res.date.off); }
   else if(res.date&&res.date.d!==undefined){
     let mm=res.date.m!==undefined?res.date.m:Cm;
     base=new Date(Cy,mm,res.date.d);
-    if(base.getMonth()!==mm) return null;
+    if(base.getMonth()!==mm) return 'Geçersiz tarih';
   }
   else if(defDay) base=new Date(Cy,Cm,defDay);
   else { base=new Date(); base.setHours(0,0,0,0); }
@@ -1685,7 +1802,7 @@ function voiceApply(res,defDay,st){
   let hasHours=Object.keys(res.vals).length>0;
   if(!res.izin&&!hasHours&&!res.del) return false;
   let days=vResolveDays(res,defDay);
-  if(!days){ st.textContent='⚠️ Geçersiz tarih'; return null; }
+  if(typeof days==='string'){ st.textContent='⚠️ '+days; return null; }
   let snap={};
   days.forEach(d=>{
     let key=`${d.getDate()}-${d.getMonth()}-${d.getFullYear()}`;
@@ -1704,8 +1821,9 @@ function voiceApply(res,defDay,st){
   VUNDO=snap;
   let f0=days[0], fN=days[days.length-1];
   if(f0.getMonth()!==Cm||f0.getFullYear()!==Cy){ Cm=f0.getMonth(); Cy=f0.getFullYear(); loadMonthExtras(); }
+  if(res.useSel){ SEL.clear(); updSel(); }
   renderCal(); vPersist();
-  let when=days.length>1?`${f0.getDate()}–${fN.getDate()} ${MN[fN.getMonth()]}`:`${f0.getDate()} ${MN[f0.getMonth()]}`;
+  let when=days.length>1?`${days.length} gün (${f0.getDate()} ${MN[f0.getMonth()]} – ${fN.getDate()} ${MN[fN.getMonth()]})`:`${f0.getDate()} ${MN[f0.getMonth()]}`;
   let what;
   if(res.del) what=(res.izWord?'izin':'mesai')+' silindi';
   else if(res.izin) what=ILF[res.izin];
@@ -1737,7 +1855,7 @@ function startVoice(ctx){
   let r=new SR(), txt='';
   r.lang='tr-TR'; r.interimResults=true; r.continuous=false; r.maxAlternatives=1;
   VREC=r;
-  r.onstart=()=>{ btn.classList.add('rec'); btn.textContent=main?'⏹':'⏹ Dinleniyor… (durdurmak için dokun)'; st.textContent=main?'Konuşun… örn: “bugün yüzde elli iki saat”, “15 kasım yıllık izin”, “dün izni sil”':'Konuşun…'; };
+  r.onstart=()=>{ btn.classList.add('rec'); btn.textContent=main?'⏹':'⏹ Dinleniyor… (durdurmak için dokun)'; st.textContent=main?'Konuşun… örn: “bu hafta hafta içi yüzde elli iki saat”, “15 ile 20 arası yıllık izin”, “ayın tamamı pazarlar hariç yüzde yüz iki saat”, “seçili günlere izin”':'Konuşun…'; };
   r.onresult=e=>{ txt=''; for(let i=0;i<e.results.length;i++) txt+=e.results[i][0].transcript+' '; txt=txt.trim(); st.textContent='🗣️ '+txt; };
   r.onerror=e=>{
     let m={'not-allowed':'Mikrofon izni verilmedi','service-not-allowed':'Mikrofon izni verilmedi','no-speech':'Ses algılanamadı, tekrar deneyin','network':'Ses tanıma için internet gerekli','audio-capture':'Mikrofon bulunamadı'}[e.error]||('Ses hatası: '+e.error);
@@ -1752,10 +1870,13 @@ function startVoice(ctx){
 
 function applyVoiceMesai(txt,ctx,st){
   let res=parseVoiceMesai(txt), keys=Object.keys(res.vals);
-  let cmd=res.izin||res.del||res.date||res.dur>1;
+  let hasDay=res.date||res.range||res.scope||res.wd||res.useSel||(res.ex&&res.ex.size);
+  let cmd=res.izin||res.del||hasDay||res.dur>1;
+  if(!hasDay&&SEL.size&&ctx==='main') res.useSel=true;
+  if(BULK&&ctx==='modal'&&cmd&&!hasDay) res.useSel=true;
   if(ctx==='main'||cmd){
-    let ok=voiceApply(res,ctx==='modal'?eDay:null,st);
-    if(ok){ if(ctx==='modal') hide('ovMes'); return; }
+    let ok=voiceApply(res,(ctx==='modal'&&!BULK)?eDay:null,st);
+    if(ok){ if(ctx==='modal'){ hide('ovMes'); BULK=false; } return; }
     if(ok===null) return;
     st.textContent='🗣️ '+txt+'  →  ❓ Anlaşılamadı. Örn: “bugün yüzde elli iki saat”';
     return;
@@ -1774,8 +1895,98 @@ function applyVoiceMesai(txt,ctx,st){
   if(res.save){ saveMes(); vPersist(); toast('✅ Mesai kaydedildi: '+sum); }
 }
 
+
+// ══════ ÇOKLU GÜN SEÇİMİ ══════
+let SELMODE=false, SEL=new Set(), BULK=false;
+const dkey=(d,m,y)=>`${d}-${m}-${y}`;
+function selDates(){ return [...SEL].map(k=>{ let p=k.split('-'); return new Date(+p[2],+p[1],+p[0]); }).sort((a,b)=>a-b); }
+function updSel(){
+  let c=document.getElementById('selCnt'); if(c) c.textContent=SEL.size+' gün seçili';
+  let m=document.getElementById('selMsg'); if(m&&SEL.size) m.textContent='';
+}
+function markSel(){
+  document.querySelectorAll('#cg .d[data-day]').forEach(el=>el.classList.toggle('sel',SELMODE&&SEL.has(dkey(+el.dataset.day,Cm,Cy))));
+}
+function toggleSelMode(on){
+  SELMODE=(on===undefined)?!SELMODE:!!on;
+  document.body.classList.toggle('selmode',SELMODE);
+  if(!SELMODE){ SEL.clear(); let m=document.getElementById('selMsg'); if(m) m.textContent=''; }
+  let t=document.getElementById('selBtnTxt'); if(t) t.textContent=SELMODE?'Seçimi Kapat':'Çoklu Seç';
+  updSel(); markSel();
+}
+function toggleDaySel(dn){
+  let k=dkey(dn,Cm,Cy);
+  if(SEL.has(k)) SEL.delete(k); else SEL.add(k);
+  updSel(); markSel();
+}
+function selQuick(t){
+  if(t==='none'){ SEL.clear(); updSel(); markSel(); return; }
+  let dmax=new Date(Cy,Cm+1,0).getDate();
+  for(let d=1;d<=dmax;d++){
+    let dow=new Date(Cy,Cm,d).getDay(), ok=false;
+    if(t==='all') ok=true;
+    else if(t==='nosun') ok=dow!==0;
+    else if(t==='wk') ok=dow>=1&&dow<=5;
+    else if(t==='we') ok=dow===0||dow===6;
+    if(ok) SEL.add(dkey(d,Cm,Cy));
+  }
+  updSel(); markSel();
+}
+function bulkApply(dates,fn,msg){
+  let snap={};
+  dates.forEach(d=>{
+    let key=dkey(d.getDate(),d.getMonth(),d.getFullYear());
+    snap[key]=DB[key]?JSON.parse(JSON.stringify(DB[key])):null;
+    let e=DB[key]||(DB[key]={});
+    fn(e);
+    let t=VP_RK.reduce((a,k)=>a+(e[k]||0),0);
+    if(t===0&&!e.izin) delete DB[key];
+  });
+  VUNDO=snap; SEL.clear(); renderCal(); vPersist(); updSel();
+  let m=document.getElementById('selMsg');
+  if(m){
+    m.textContent='✅ '+msg+' ';
+    let b=document.createElement('button'); b.type='button'; b.textContent='↩️ Geri al';
+    b.style.cssText='border:none;background:var(--BG);color:var(--P);font-weight:800;border-radius:99px;padding:3px 10px;font-size:11px;font-family:var(--F);';
+    b.onclick=()=>{ voiceUndo(m); }; m.appendChild(b);
+  }
+  toast('✅ '+msg);
+}
+function openMesaiBulk(){
+  if(!SEL.size){ toast('⚠️ Önce takvimde gün işaretleyin'); return; }
+  BULK=true;
+  document.getElementById('ovMesT').textContent=`⏱️ Mesai — ${SEL.size} gün`;
+  ['e50','e65','e75','e100','e200','eX'].forEach(id=>document.getElementById(id).value='');
+  VBASE={}; VP_RK.forEach(k=>VBASE[k]=0);
+  let vs=document.getElementById('voiceStat'); if(vs) vs.textContent='Boş bıraktığınız oranlara dokunulmaz; yazdıklarınız tüm seçili günlere işlenir.';
+  show('ovMes');
+}
+function bulkSaveMes(){
+  let dates=selDates(), vals={};
+  [['r50','e50'],['r65','e65'],['r75','e75'],['r100','e100'],['r200','e200'],['rX','eX']].forEach(([k,id])=>{
+    let v=document.getElementById(id).value;
+    if(v!==''&&!isNaN(parseFloat(v))) vals[k]=parseFloat(v);
+  });
+  if(!Object.keys(vals).length){ toast('⚠️ Saat girilmedi'); return; }
+  hide('ovMes'); BULK=false;
+  bulkApply(dates,e=>{ Object.keys(vals).forEach(k=>{ e[k]=vals[k]; }); VP_RK.forEach(k=>{ if(e[k]===undefined) e[k]=0; }); },`${dates.length} güne mesai işlendi`);
+}
+function openIzinBulk(){
+  if(!SEL.size){ toast('⚠️ Önce takvimde gün işaretleyin'); return; }
+  BULK=true;
+  document.getElementById('ovIzDT').textContent=`🏖️ İzin — ${SEL.size} gün`;
+  selIT('yillik'); show('ovIzD');
+}
+async function bulkClear(){
+  if(!SEL.size){ toast('⚠️ Önce takvimde gün işaretleyin'); return; }
+  let dates=selDates();
+  if(!await customConfirm(`${dates.length} günün mesai/izin kaydı silinsin mi?`)) return;
+  bulkApply(dates,e=>{ delete e.izin; VP_RK.forEach(k=>delete e[k]); },`${dates.length} günün kaydı silindi`);
+}
+
 function openIzinDay(){
   if(eDay===null) return;
+  BULK=false;
   let key=`${eDay}-${Cm}-${Cy}`, ent=DB[key]||{};
   document.getElementById('ovIzDT').textContent=`🏖️ İzin — ${eDay} ${MN[Cm]}`;
   selIT(ent.izin||'yillik');
@@ -1788,6 +1999,11 @@ function selIT(t){
   if(el) el.classList.add('on');
 }
 function saveIzDay(){
+  if(BULK){
+    let dates=selDates(); hide('ovIzD'); BULK=false;
+    bulkApply(dates,e=>{ e.izin=selIzT; },`🏖️ ${dates.length} güne ${ILF[selIzT]} işlendi`);
+    return;
+  }
   if(eDay===null) return;
   let key=`${eDay}-${Cm}-${Cy}`;
   if(!DB[key]) DB[key]={};
