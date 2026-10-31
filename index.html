@@ -2820,7 +2820,9 @@ function delPhoto(entryKey, i){
 function registerPWA(){
   try{
     if('serviceWorker' in navigator){
-      navigator.serviceWorker.register('./sw.js', {scope:'./'}).catch(()=>{});
+      const had=!!navigator.serviceWorker.controller; let rl=false;
+      navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(!had||rl) return; rl=true; location.reload(); });
+      navigator.serviceWorker.register('./sw.js', {scope:'./',updateViaCache:'none'}).then(r=>{ try{r.update();}catch(e){} }).catch(()=>{});
     }
   }catch(e){}
 }
